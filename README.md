@@ -27,12 +27,14 @@ guessing.
 
 [`ONBOARDING.md`](ONBOARDING.md) is the whole setup procedure, written to be
 executed by an agent rather than read by you: three rounds of questions (the
-event and the people, which features you want, where the repository lives), a
-recap you confirm, then it writes `event.yaml`, `EVENT.md` and the memory seed,
-creates the private repo, pushes, and tells you the one or two things only you
-can do. Answer in prose, skip what you do not care about, say "all the
-defaults" — it takes what you give it. The document deletes itself in the
-first commit, so your repository never carries it.
+event and the people, which features you want, where the repository lives) and a
+recap you confirm, then it writes `event.yaml` and `EVENT.md`, installs the
+shipped contract as your root `AGENTS.md`, reseeds `memory/` for your event,
+replaces this README with one about the event, checks the hooks all run, creates
+the private repo, pushes, and tells you the one or two things only you can do.
+Answer in prose, skip what you do not care about, say "all the defaults" — it
+takes what you give it. The document deletes itself in the first commit, so your
+repository never carries it.
 
 ## What is in it
 

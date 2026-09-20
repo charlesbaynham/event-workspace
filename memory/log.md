@@ -40,3 +40,8 @@ Rules for writers:
 - [2026-09-20] LEARNED: a consumer on update.sh ≤0.3.x copies upstream's ROOT AGENTS.md over its own — from 0.4.0 that is the maintainer guide, so such consumers must copy the new update.sh first (README says so). Reason VERSION went 0.3.0 → 0.4.0, not a patch.
 - [2026-09-20] STATE: ONBOARDING now resets memory/ (log, digest, user-edits) to the empty seed at birth — until now a child inherited the template's own log entries.
 - [2026-09-20] STATE: CLAUDE.md is a pure three-import adapter again; the "Maintaining the engine" section moved into the template's AGENTS.md.
+- [2026-09-20] STATE: ONBOARDING.md rewritten for the 0.4.0 split — new "what you are converting" preamble (event.yaml is the birth moment; in_template gates update.sh/sync-push.sh/git-sync.sh), contract install, CLAUDE.md trim, child README rewrite (step 6), a verified check step (7), spin-out-plan dropped from the child.
+- [2026-09-20] LEARNED: a child's inherited README and CLAUDE.md preamble both describe the *template* — onboarding must rewrite them, or every workspace ships docs telling its owner to clone the template.
+- [2026-09-20] LEARNED: memory/whatsapp/CLAUDE.md carries an intentional `@AGENTS.md` (nested adapter), so a blanket `grep -rn '^@' memory/` false-alarms — the workspace check greps memory/*.md and memory/notes/ only.
+- [2026-09-20] LEARNED: verified in a scratch clone: update.sh --check works the moment event.yaml exists; git-sync.sh says "could not fetch origin/main" and exits 0 before origin is added; automode-check.sh reports drift in a container holding another workspace's rules.
+- [2026-09-20] DECISION: no VERSION bump — ONBOARDING.md, README.md and the maintainer guide are outside agent-tools/, so nothing propagates to consumers.
