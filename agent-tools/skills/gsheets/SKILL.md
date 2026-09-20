@@ -39,7 +39,9 @@ never belongs in a repository — supply it through the environment:
 - `$GOOGLE_SERVICE_ACCOUNT_KEY` — the JSON key as a string (the right choice for
   a cloud agent environment: set it in the environment's variables), or
 - `$GOOGLE_APPLICATION_CREDENTIALS` — a path to the key file, or
-- `~/.config/gsheets/sa.json` / `./sa.json` on a persistent machine.
+- `~/.config/gsheets/sa.json` / `./sa.json` on a persistent machine, or
+  `assets/sa.json` next to this skill — gitignored, and left alone by
+  `agent-tools/update.sh`, but a committed key is a leak waiting to happen.
 
 `gs.py` tries them in that order; verify with `python scripts/gs.py whoami`.
 
