@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 # ---------------------------------------------------------------------------
-# Pull a release of agent-tools/ from the upstream event-workspace over this
-# vendored copy. Usage:
+# Pull the engine (agent-tools/ and AGENTS.md) from the upstream event-workspace
+# over this vendored copy.
 #
-#   agent-tools/update.sh            # latest tag
-#   agent-tools/update.sh v0.2.0     # a specific tag, branch or full sha
-#   agent-tools/update.sh --check    # report the latest tag, change nothing
+#   agent-tools/update.sh            # what event.yaml's agent_tools_track says:
+#                                    #   main (default) — the tip of the default branch
+#                                    #   tags           — the newest semver tag vX.Y.Z
+#   agent-tools/update.sh v0.2.0     # an explicit tag, branch or full sha
+#   agent-tools/update.sh --check    # installed vs upstream VERSION, change nothing
 #
 # Everything under agent-tools/ is replaced except the paths in KEEP, which are
 # per-event and never shipped upstream; AGENTS.md (the generic contract) is
@@ -17,6 +19,7 @@ set -euo pipefail
 
 . "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 UPSTREAM="$(event_cfg agent_tools_upstream https://github.com/charlesbaynham/event-workspace)"
+TRACK="$(event_cfg agent_tools_track main)"
 KEEP=(skills/gsheets/assets)
 DEST="$ROOT/agent-tools"
 
@@ -24,18 +27,28 @@ latest_tag() {
   git ls-remote --tags --refs "$UPSTREAM" 'v*' | awk -F/ '{print $NF}' | sort -V | tail -1
 }
 
-REF="${1:-}"
-if [ "$REF" = "--check" ]; then
-  echo "installed: $(cat "$DEST/VERSION")   latest: $(latest_tag)   upstream: $UPSTREAM"
-  exit 0
-fi
-[ -n "$REF" ] || REF="$(latest_tag)"
-[ -n "$REF" ] || { echo "update: no release tag found at $UPSTREAM" >&2; exit 1; }
+resolve_ref() {
+  case "$TRACK" in
+    tags) latest_tag ;;
+    *)    printf '%s\n' "$TRACK" ;;   # a branch name; "main" unless the consumer set otherwise
+  esac
+}
+
+REF="${1:-}"; MODE=install
+if [ "$REF" = "--check" ]; then MODE=check; REF=""; fi
+[ -n "$REF" ] || REF="$(resolve_ref)"
+[ -n "$REF" ] || { echo "update: nothing to fetch — track '$TRACK' resolved to no ref at $UPSTREAM" >&2; exit 1; }
 
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 git -C "$TMP" init --quiet
-git -C "$TMP" fetch --quiet --depth 1 "$UPSTREAM" "$REF"   # a tag, branch or sha alike
+git -C "$TMP" fetch --quiet --depth 1 "$UPSTREAM" "$REF"   # a tag, branch or full sha alike
 git -C "$TMP" checkout --quiet FETCH_HEAD
+UP_VERSION="$(cat "$TMP/agent-tools/VERSION")"
+
+if [ "$MODE" = check ]; then
+  echo "installed: $(cat "$DEST/VERSION")   upstream ($REF): $UP_VERSION   track: $TRACK   $UPSTREAM"
+  exit 0
+fi
 
 # No rsync in the cloud containers this runs in, so: set the kept paths aside,
 # replace the directory wholesale, put them back.
@@ -50,5 +63,5 @@ for k in "${KEEP[@]}"; do
 done
 cp "$TMP/AGENTS.md" "$ROOT/AGENTS.md"
 
-echo "update: agent-tools is now $(cat "$DEST/VERSION") ($REF) from $UPSTREAM"
+echo "update: agent-tools is now $UP_VERSION ($REF) from $UPSTREAM"
 echo "update: review with 'git status' and 'git diff', then commit."
