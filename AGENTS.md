@@ -63,7 +63,9 @@ the shipped contract being in context here.
   `ONBOARDING.md` still says the right thing about them.
 - `.claude/skills/*` and `.claude/agents/*` are symlinks into `agent-tools/`;
   `.agents/skills/*` (Codex) are stub files pointing at the same place. A new
-  skill or agent needs its entry in both.
+  skill or agent needs its entry in both. A **template-only** skill
+  (`bump-version`) is a real directory under `.claude/skills/` instead, and
+  `ONBOARDING.md` deletes it at birth — a workspace never releases the engine.
 - Per-event behaviour never goes in `agent-tools/` — it belongs in the
   `.example` files and, for the consumer, in `event.yaml`, `EVENT.md` and
   `memory/`. Keep the `.example` files in step with the keys `lib.sh` and the
@@ -72,13 +74,20 @@ the shipped contract being in context here.
 ## Versioning
 
 When a change to `agent-tools/` — the shipped contract included — alters
-behaviour, bump `agent-tools/VERSION` in the same commit. Semantic versioning:
-patch = fix, minor = feature or behaviour change, major = a consumer has to
-act (an `event.yaml` key, the file layout, a skill's section numbers). Then
-**remind Charles to consider tagging it `vX.Y.Z`** — consumers on
-`agent_tools_track: tags` see nothing until a tag exists, and a tag is his to
-push. Consumers on `main` get every push, so `main` should always be
-installable.
+behaviour, bump `agent-tools/VERSION` and write the `agent-tools/CHANGELOG.md`
+entry in the same commit. **Use the `bump-version` skill**: it carries the
+semver rules, how to read what has changed since the last bump, and what a
+consumer needs from the entry. Changes outside `agent-tools/` reach nobody
+through `update.sh` and need no bump. Until `1.0.0` a breaking change rides in
+a minor and keeps **no** compatibility shim — drop the old key, name or value
+and write the migration under **To do by hand** in the entry.
+
+Consumers on `agent_tools_track: pinned` compare the text of
+`agent-tools/VERSION` against upstream's copy at session start, so a bump on
+`main` is the release: nothing has to be tagged, and the changelog entry is
+what they are shown when deciding. Consumers on `latest` get every push, so
+`main` should always be installable. A `vX.Y.Z` tag is now only a readable
+marker, and Charles's to push if he wants one.
 
 ## Memory here
 
