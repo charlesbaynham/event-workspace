@@ -20,6 +20,8 @@
 #
 # 3. Get off the harness's scaffolding branch, because AGENTS.md says work here
 #    goes to the default branch whatever the session boilerplate checked out.
+#    Skipped in the upstream template (no event.yaml), where branches and PRs
+#    are the convention — jobs 1 and 2 still run there.
 #
 # Never destroys work: real divergence is reported and left alone. Never fails a
 # session — always exits 0.
@@ -75,6 +77,11 @@ else
   note "WARNING: $BRANCH has $AHEAD commit(s) that are NOT on origin/$BRANCH."
   note "This is real divergence, not the usual stale-snapshot artifact —"
   note "left untouched. Inspect before resetting: git log origin/$BRANCH..$BRANCH"
+fi
+
+if in_template; then
+  [ "$HEAD_REF" = "$BRANCH" ] || note "template repository (no event.yaml): branches are ordinary here — staying on '$HEAD_REF'."
+  exit 0
 fi
 
 # Only claude/* is treated as scaffolding. A branch the owner named themselves is
