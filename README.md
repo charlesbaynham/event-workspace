@@ -13,54 +13,26 @@ session no worse off than itself.
 ## Set it up with your coding agent
 
 Paste this into Claude Code, Codex or any coding agent, from your home directory
-with nothing cloned. Fill in the bracketed answers first (or leave them and the
-agent will ask).
+with nothing cloned. There is nothing to fill in — it asks you.
 
 ```text
 Set up a new event workspace for me from the template at
-https://github.com/charlesbaynham/event-workspace. Work from my home directory.
+https://github.com/charlesbaynham/event-workspace.
 
-My answers:
-- Event name: [e.g. "Ada & Ben's wedding, 12 June 2027"]
-- New GitHub repo (owner/name, private): [e.g. ada/wedding-workspace]
-- Owners (technical users whose word is authoritative): [names]
-- Co-users (non-technical users who get the warm register): [names, or none]
-- Source of truth: [a Google Sheet URL/id, "this repo", or other]
-- WhatsApp bot: [bot name + the MCP connector prefix, e.g. mcp__Event_Whatsapp__; or "skip for now"]
-- Follow upstream updates from: [main | tags]  (main = the author's current
-  tip; tags = only semver releases vX.Y.Z, the safer choice)
-- Agent tools I use: [Claude Code | Codex | both | other]
-
-Do this, asking me only for answers I left blank:
-1. git clone --depth 1 https://github.com/charlesbaynham/event-workspace <name>,
-   cd into it, delete its .git, and git init -b main. This is my repo now, not
-   a fork.
-2. Read README.md, AGENTS.md and docs/agent-ops-notes.md so you know how the
-   workspace works before you touch it.
-3. Copy event.yaml.example to event.yaml, EVENT.md.example to EVENT.md and
-   automode.json.example to automode.json, and fill all three in from my
-   answers: name, owners, co_users, source_of_truth and sheets, the whatsapp
-   block (or leave it as the example with a note that it is unused),
-   agent_tools_track set to my choice. Leave the .example files in place.
-   Leave agent-tools/ and AGENTS.md exactly as they are — they are the engine
-   and are overwritten by agent-tools/update.sh.
-4. If my source of truth is a Google Sheet: tell me to run
-   agent-tools/skills/gsheets/scripts/bootstrap_gcp.sh once in Google Cloud
-   Shell, put the key it prints in my agent environment as
-   GOOGLE_SERVICE_ACCOUNT_KEY, and share the Sheet with the service-account
-   address it prints. Do not put the key in the repo.
-5. Create the private GitHub repo from my answer with whatever you have
-   (the gh CLI, a GitHub MCP tool, or ask me to create it in the browser and
-   paste the URL), add it as origin, commit everything with the message
-   "New event workspace from event-workspace <version in agent-tools/VERSION>",
-   and push main.
-6. Tell me what is left for me: sharing the Sheet and setting the key; adding
-   agent-tools/automode/install.sh to my cloud environment's setup script if I
-   use Claude Code on the web (docs/agent-ops-notes.md explains why it must be
-   there); and, if I want the WhatsApp bot, opening a session in the new repo
-   and saying "set up the WhatsApp routine" — agent-tools/skills/whatsapp/setup.md
-   lists the prerequisites (a second phone number and a bridge).
+Clone it into a new folder in my home directory, then read ONBOARDING.md in
+that folder and follow it as your prompt. It will interview me about the event
+and configure the workspace from my answers — ask me its questions rather than
+guessing.
 ```
+
+[`ONBOARDING.md`](ONBOARDING.md) is the whole setup procedure, written to be
+executed by an agent rather than read by you: three rounds of questions (the
+event and the people, which features you want, where the repository lives), a
+recap you confirm, then it writes `event.yaml`, `EVENT.md` and the memory seed,
+creates the private repo, pushes, and tells you the one or two things only you
+can do. Answer in prose, skip what you do not care about, say "all the
+defaults" — it takes what you give it. The document deletes itself in the
+first commit, so your repository never carries it.
 
 ## What is in it
 
@@ -76,7 +48,8 @@ Do this, asking me only for answers I left blank:
 
 ## Getting started by hand
 
-The block above does all of this. If you would rather do it yourself:
+`ONBOARDING.md` walks an agent through all of this. If you would rather do it
+yourself:
 
 1. **Use this template** (GitHub → *Use this template*) into a private repo.
 2. Copy `event.yaml.example` → `event.yaml` and `EVENT.md.example` → `EVENT.md`;
