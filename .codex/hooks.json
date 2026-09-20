@@ -19,9 +19,9 @@
           },
           {
             "type": "command",
-            "command": "\"$(git rev-parse --show-toplevel)/agent-tools/hooks/tag-check.sh\"",
+            "command": "\"$(git rev-parse --show-toplevel)/agent-tools/hooks/version-check.sh\"",
             "timeout": 90,
-            "statusMessage": "Checking for engine releases"
+            "statusMessage": "Checking for engine updates"
           },
           {
             "type": "command",

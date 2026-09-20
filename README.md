@@ -79,44 +79,52 @@ Codex users: `.codex/hooks.json` and `.agents/skills/` wire the same engine.
 
 ## Updating
 
-The engine lives in `agent-tools/`, versioned by `agent-tools/VERSION`. It
-includes the contract, `agent-tools/AGENTS.md`, which `update.sh` reinstalls
-as your root `AGENTS.md`.
+The engine lives in `agent-tools/`, versioned by `agent-tools/VERSION` and
+described release by release in `agent-tools/CHANGELOG.md`. It includes the
+contract, `agent-tools/AGENTS.md`, which `update.sh` reinstalls as your root
+`AGENTS.md`.
 
 ```bash
 agent-tools/update.sh --check    # installed vs upstream, changes nothing
 agent-tools/update.sh            # pull upstream over agent-tools/, reinstall AGENTS.md
-git diff && git commit -am "agent-tools: 0.4.0"
+git diff && git commit -am "agent-tools: 0.6.0"
 ```
 
 What "upstream" means is your choice, recorded as `agent_tools_track` in
 `event.yaml`:
 
-- **`main`** (the default) — the tip of this repo's default branch: what the
-  author runs day to day, including work in progress.
-- **`tags`** — **a pin.** Your workspace stays on the release recorded in
-  `agent-tools/VERSION`; a bare `update.sh` reinstalls that same release, and
-  nothing arrives unasked. Instead, `agent-tools/hooks/tag-check.sh` checks
-  upstream at session start, and when a newer release exists the agent offers
-  it: update now, not now, not this release, or stop offering. The last two
-  are remembered in `event.yaml` (`agent_tools_tag_skip`,
-  `agent_tools_tag_check: off`) so you are asked once. Moving is always
-  `update.sh vX.Y.Z` with the release named.
+- **`latest`** — the tip of this repo's default branch: what the author runs
+  day to day, including work in progress. Every `update.sh` takes it.
+- **`pinned`** (the default) — your workspace stays on the version in
+  `agent-tools/VERSION` and nothing arrives unasked. Instead,
+  `agent-tools/hooks/version-check.sh` compares that file with upstream's copy
+  at session start, and when upstream is ahead the agent offers the update
+  **with the changelog entries you do not have yet**: update now, not now, not
+  this version, or stop offering. The last two are remembered in `event.yaml`
+  (`agent_tools_version_skip`, `agent_tools_update_check: off`) so you are
+  asked once. Taking it is `update.sh --accept`.
 
-  Tags follow semantic versioning: a patch is a fix, a minor adds a feature or
-  changes behaviour you may want to read about, a major changes something you
-  have to act on (`event.yaml` keys, file layout, the skill's section
-  numbers). Pick this track if you would rather not be surprised.
+  Versions follow semantic versioning: a patch is a fix, a minor adds a feature
+  or changes behaviour you may want to read about, a major changes something
+  you have to act on (`event.yaml` keys, file layout, the skill's section
+  numbers) — and says so under **To do by hand** in the changelog. Pick this
+  track if you would rather not be surprised.
 
-`update.sh <tag|branch|full sha>` overrides the track for one run. **Upgrading
-to 0.5.0 on the `tags` track:** add `agent-tools/hooks/tag-check.sh` beside the
-other `SessionStart` hooks in `.claude/settings.json` (and `.codex/hooks.json`
-if you use Codex) — those files are yours and no update writes to them, so
-until you do, nothing will tell you a release has landed. `update.sh` says so
-when it notices. **Upgrading from 0.3.x or earlier: copy the current `agent-tools/update.sh` from upstream
-over yours before running it.** Older versions only knew about tags (0.2.0 and
-before) or copied the template's *root* `AGENTS.md` over yours (0.3.x) — and
-since 0.4.0 that file is the template's maintainer guide, not the contract.
+Nothing reads git tags: a version is the text in `agent-tools/VERSION`, on
+whichever branch you follow. `update.sh <tag|branch|full sha>` still overrides
+the track for one run.
+
+**Upgrading from 0.5.0:** the `tags` and `main` track names still work (as
+`pinned` and `latest`), and `update.sh` repoints your `tag-check.sh` hook to
+`version-check.sh` in `.claude/settings.json` and `.codex/hooks.json` as it
+runs. **Upgrading from 0.4.x on `tags`:** add `agent-tools/hooks/version-check.sh`
+beside the other `SessionStart` hooks in those files yourself — they are yours
+and no update writes to them otherwise. **Upgrading from 0.3.x or earlier: copy
+the current `agent-tools/update.sh` from upstream over yours before running
+it.** Older versions only knew about tags (0.2.0 and before) or copied the
+template's *root* `AGENTS.md` over yours (0.3.x) — and since 0.4.0 that file is
+the template's maintainer guide, not the contract.
+
 Local edits to `agent-tools/` and `AGENTS.md` are overwritten on update — that
 is the point. Per-event behaviour belongs in `event.yaml`, `EVENT.md` and
 `memory/`.
