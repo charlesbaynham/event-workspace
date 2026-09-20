@@ -106,7 +106,7 @@ defaults" is a complete answer.
 | **WhatsApp guest bot** | A dedicated number guests text, answered by the workspace, with an isolated send-gate on every reply. Needs a spare phone number and a bridge you host. | later |
 | **Auto-mode rules** | Classifier rules kept in the repo and installed into a cloud environment, so routine work runs unattended. Only meaningful for Claude Code on the web. | on if they use Claude Code on the web |
 | **Agents** | Which coding agents will open this repository? Claude Code, Codex, both, something else that reads `AGENTS.md`. | both wired; costs nothing |
-| **Upstream track** | How `update.sh` follows upstream: `main` = the author's current tip, work in progress included; `tags` = semver releases only. | `tags`; recommend it |
+| **Upstream track** | How `update.sh` follows upstream: `main` = the author's current tip, work in progress included; `tags` = pinned to one release, with a session-start check that offers newer ones and remembers a no. | `tags`; recommend it |
 | **Default branch** | `main` unless they have a reason. | `main` |
 
 Three things to be straight about when they ask:
@@ -264,6 +264,10 @@ agent-tools/hooks/git-sync.sh                # "could not fetch origin/main" unt
 agent-tools/hooks/memory-check.sh            # a nearly empty log, digest empty: the fresh seed
 agent-tools/hooks/automode-check.sh          # silent if auto-mode is off; a drift report is
                                              #  expected until install.sh runs from this repo
+agent-tools/hooks/tag-check.sh               # on the tags track: "pinned to vX.Y.Z; no newer
+                                             #  release upstream". Silent on any other track.
+                                             #  "no such tag" means you cloned ahead of the
+                                             #  newest tag — pick a release with update.sh vX.Y.Z
 grep -rn '^@' memory/*.md memory/notes/      # nothing. (memory/whatsapp/CLAUDE.md is the one
                                              #  deliberate import and is not in that set)
 ls -l .claude/skills .claude/agents          # symlinks, relative, resolving into agent-tools/
