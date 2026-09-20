@@ -19,6 +19,12 @@
           },
           {
             "type": "command",
+            "command": "\"$(git rev-parse --show-toplevel)/agent-tools/hooks/tag-check.sh\"",
+            "timeout": 90,
+            "statusMessage": "Checking for engine releases"
+          },
+          {
+            "type": "command",
             "command": "\"$(git rev-parse --show-toplevel)/agent-tools/hooks/load-memory.sh\"",
             "timeout": 10,
             "additionalContextLimit": 16000,
