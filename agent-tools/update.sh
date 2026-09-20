@@ -57,7 +57,12 @@ esac
 
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 git -C "$TMP" init --quiet
-git -C "$TMP" fetch --quiet --depth 1 "$UPSTREAM" "$REF"   # a branch, tag, sha or HEAD alike
+# A branch, tag, sha or HEAD alike.
+if ! git -C "$TMP" fetch --quiet --depth 1 "$UPSTREAM" "$REF"; then
+  echo "update: could not fetch '$REF' from $UPSTREAM." >&2
+  echo "update: agent_tools_track is '$TRACK' — the tracks are 'latest', 'pinned', or a branch name." >&2
+  exit 1
+fi
 git -C "$TMP" checkout --quiet FETCH_HEAD
 UP_VERSION="$(tr -d '[:space:]' < "$TMP/agent-tools/VERSION")"
 
@@ -99,14 +104,7 @@ echo "update: review with 'git status' and 'git diff', then commit."
 
 # The hook lives in agent-tools/ and so arrives with every update, but the
 # files that RUN it are per-event and were only ever written at birth — a
-# workspace older than the hook has to be told once, and one that registered
-# it under its 0.5.0 name (tag-check.sh) has to be repointed.
-for f in "$ROOT/.claude/settings.json" "$ROOT/.codex/hooks.json"; do
-  [ -f "$f" ] || continue
-  grep -q 'tag-check\.sh' "$f" || continue
-  sed 's/tag-check\.sh/version-check.sh/g' "$f" > "$TMP/hookfile" && cat "$TMP/hookfile" > "$f"
-  echo "update: repointed the tag-check.sh SessionStart hook to version-check.sh in ${f#"$ROOT"/}"
-done
+# workspace that does not name it has to be told once.
 if [ "$TRACK" = pinned ] \
    && ! grep -qs 'version-check\.sh' "$ROOT/.claude/settings.json" "$ROOT/.codex/hooks.json"; then
   echo "update: this workspace is pinned but does not run"

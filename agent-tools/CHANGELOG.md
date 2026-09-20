@@ -6,7 +6,9 @@ version at the top is what `agent-tools/VERSION` holds.
 Semantic versioning: **major** — a consumer has to do something by hand
 (an `event.yaml` key, a moved file, renumbered sections); **minor** — new
 behaviour you may want to read about, but nothing to do; **patch** — a fix
-with no behaviour change.
+with no behaviour change. **Until 1.0.0, breaking changes ride in a minor and
+keep no compatibility shims** — the entry says so, and lists what to edit under
+**To do by hand**.
 
 A workspace on the `pinned` track is shown every entry newer than the version
 it runs, both by `agent-tools/hooks/version-check.sh` at session start and by
@@ -19,30 +21,40 @@ what they have to do about it.
 
 ## 0.6.0 — 2026-09-20
 
+**Breaking, and nothing is carried over.** Before 1.0.0 this engine keeps no
+compatibility shims: the old spellings below are simply gone, so a workspace
+has to be edited once (see **To do by hand**).
+
 ### Changed
 
 - The update tracks are now **`latest`** (follow upstream's default branch,
-  the old `main`) and **`pinned`** (stay put until you accept an offer, the
-  old `tags`). Both old names still work, so nothing has to change in
-  `event.yaml`; any other value is still a branch name.
+  what `main` used to mean) and **`pinned`** (stay put until you accept an
+  offer, what `tags` used to mean). Any other value is still a branch name —
+  and `tags` is now read as one, so a workspace left on it will fail to fetch.
 - **Pinning no longer involves git tags.** The pin is the text of
   `agent-tools/VERSION`, compared against upstream's copy of the same file, so
   a release is offered as soon as it lands on upstream's default branch and
   nothing needs tagging.
 - `agent-tools/hooks/tag-check.sh` is now `agent-tools/hooks/version-check.sh`.
-  `update.sh` repoints the hook in `.claude/settings.json` and
-  `.codex/hooks.json` for you on the next update.
 - A pinned workspace moves with `agent-tools/update.sh --accept` (an explicit
   ref still works too). A bare `update.sh` keeps the pin, and says what it is
   declining to take.
 - `event.yaml`: `agent_tools_tag_skip` → `agent_tools_version_skip` (bare
-  versions, no `v`), `agent_tools_tag_check` → `agent_tools_update_check`. The
-  old keys are still read.
+  versions, no `v`), `agent_tools_tag_check` → `agent_tools_update_check`.
 
 ### Added
 
 - This changelog. Update offers quote every entry the workspace does not have
   yet, so the owner decides on the changes rather than on a version number.
+
+### To do by hand
+
+In `event.yaml`: `agent_tools_track: tags` → `pinned`, `main` → `latest`, and
+rename `agent_tools_tag_skip` / `agent_tools_tag_check` (dropping any `v`
+prefixes) if you have them. In `.claude/settings.json` and `.codex/hooks.json`,
+point the `SessionStart` hook at `version-check.sh` instead of `tag-check.sh` —
+those files are yours and no update writes to them, so until you do, nothing
+will tell you an update has landed. `update.sh` says so when it notices.
 
 ## 0.5.0 — 2026-09-20
 
@@ -61,7 +73,7 @@ what they have to do about it.
 
 - Register the new hook beside the other `SessionStart` hooks in
   `.claude/settings.json` and `.codex/hooks.json` — those files are per-event
-  and no update writes to them. (0.6.0 does this for you.)
+  and no update writes to them.
 
 ## 0.4.0 — 2026-09-20
 

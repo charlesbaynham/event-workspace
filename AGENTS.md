@@ -78,7 +78,9 @@ behaviour, bump `agent-tools/VERSION` and write the `agent-tools/CHANGELOG.md`
 entry in the same commit. **Use the `bump-version` skill**: it carries the
 semver rules, how to read what has changed since the last bump, and what a
 consumer needs from the entry. Changes outside `agent-tools/` reach nobody
-through `update.sh` and need no bump.
+through `update.sh` and need no bump. Until `1.0.0` a breaking change rides in
+a minor and keeps **no** compatibility shim — drop the old key, name or value
+and write the migration under **To do by hand** in the entry.
 
 Consumers on `agent_tools_track: pinned` compare the text of
 `agent-tools/VERSION` against upstream's copy at session start, so a bump on

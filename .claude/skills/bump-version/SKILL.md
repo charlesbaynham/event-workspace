@@ -44,8 +44,11 @@ Rules of thumb:
 - **Ask whether it can be made to land cleanly instead.** Keeping the old
   `event.yaml` key readable, or having `update.sh` repoint a renamed hook, turns
   a major into a minor — and is usually worth the few lines.
-- Below `1.0.0` the same rules apply; do not use "it's pre-1.0" as a reason to
-  skip a major.
+- **Below `1.0.0`, breaking changes ride in a minor** (semver's major-version-zero
+  rule, and Charles's call): no compatibility shims are kept for old key names,
+  old values or renamed files — they are dropped, and the entry gets a
+  **To do by hand** section saying exactly what to edit. Say in the entry that
+  it is breaking. From `1.0.0` on, that same change is a major.
 - One bump per release, not one per commit. If `VERSION` was already raised
   since the last push, extend that entry instead of adding another.
 

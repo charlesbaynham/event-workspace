@@ -114,14 +114,16 @@ Nothing reads git tags: a version is the text in `agent-tools/VERSION`, on
 whichever branch you follow. `update.sh <tag|branch|full sha>` still overrides
 the track for one run.
 
-**Upgrading from 0.5.0:** the `tags` and `main` track names still work (as
-`pinned` and `latest`), and `update.sh` repoints your `tag-check.sh` hook to
-`version-check.sh` in `.claude/settings.json` and `.codex/hooks.json` as it
-runs. **Upgrading from 0.4.x on `tags`:** add `agent-tools/hooks/version-check.sh`
-beside the other `SessionStart` hooks in those files yourself — they are yours
-and no update writes to them otherwise. **Upgrading from 0.3.x or earlier: copy
-the current `agent-tools/update.sh` from upstream over yours before running
-it.** Older versions only knew about tags (0.2.0 and before) or copied the
+**Before 1.0.0 there are no compatibility shims** — a breaking change is
+described under **To do by hand** in the changelog entry, and you make it
+yourself. **Upgrading from 0.5.0 or 0.4.x:** rename your `agent_tools_track`
+(`tags` → `pinned`, `main` → `latest`) and the `agent_tools_tag_*` keys, and
+point the `SessionStart` hook in `.claude/settings.json` and
+`.codex/hooks.json` at `agent-tools/hooks/version-check.sh` — those files are
+yours and no update writes to them, so until you do, nothing will tell you an
+update has landed. `update.sh` says so when it notices. **Upgrading from 0.3.x
+or earlier: copy the current `agent-tools/update.sh` from upstream over yours
+before running it.** Older versions only knew about tags (0.2.0 and before) or copied the
 template's *root* `AGENTS.md` over yours (0.3.x) — and since 0.4.0 that file is
 the template's maintainer guide, not the contract.
 

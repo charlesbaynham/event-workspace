@@ -22,19 +22,11 @@ in_template() { [ ! -f "$ROOT/event.yaml" ]; }
 # Where update.sh pulls from, and how closely it follows.
 upstream_url() { event_cfg agent_tools_upstream https://github.com/charlesbaynham/event-workspace; }
 
-# event.yaml's agent_tools_track, normalised:
+# event.yaml's agent_tools_track:
 #   latest — upstream's default branch, taken whenever you update
 #   pinned — the version in agent-tools/VERSION; nothing moves unasked
 #   <name> — any other value is a branch, followed like `latest` but on it
-# `main` and `tags` are what the first two were called before 0.6.0.
-update_track() {
-  local t; t="$(event_cfg agent_tools_track latest)"
-  case "$t" in
-    latest|main) printf 'latest\n' ;;
-    pinned|tags) printf 'pinned\n' ;;
-    *)           printf '%s\n' "$t" ;;
-  esac
-}
+update_track() { event_cfg agent_tools_track latest; }
 
 # The ref a bare update fetches: upstream's default branch on both named
 # tracks, the named branch otherwise.
