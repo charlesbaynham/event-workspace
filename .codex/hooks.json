@@ -1,0 +1,31 @@
+{
+  "description": "Event workspace lifecycle hooks.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$(git rev-parse --show-toplevel)/agent-tools/hooks/git-sync.sh\"",
+            "timeout": 180,
+            "statusMessage": "Synchronizing workspace"
+          },
+          {
+            "type": "command",
+            "command": "\"$(git rev-parse --show-toplevel)/agent-tools/hooks/memory-check.sh\"",
+            "timeout": 10,
+            "statusMessage": "Checking memory"
+          },
+          {
+            "type": "command",
+            "command": "\"$(git rev-parse --show-toplevel)/agent-tools/hooks/load-memory.sh\"",
+            "timeout": 10,
+            "additionalContextLimit": 16000,
+            "statusMessage": "Loading event memory"
+          }
+        ]
+      }
+    ]
+  }
+}
