@@ -12,3 +12,8 @@ event_cfg() {
 }
 
 BRANCH="$(event_cfg default_branch main)"
+
+# The upstream template ships event.yaml.example only; every workspace born
+# from it has event.yaml. Scripts that only make sense in a workspace use this
+# to refuse, and git-sync uses it to leave branches alone.
+in_template() { [ ! -f "$ROOT/event.yaml" ]; }

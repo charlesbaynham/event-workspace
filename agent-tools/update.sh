@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # ---------------------------------------------------------------------------
-# Pull the engine (agent-tools/ and AGENTS.md) from the upstream event-workspace
-# over this vendored copy.
+# Pull the engine (agent-tools/) from the upstream event-workspace over this
+# vendored copy, and reinstall the contract it ships (agent-tools/AGENTS.md)
+# as this repository's root AGENTS.md.
 #
 #   agent-tools/update.sh            # what event.yaml's agent_tools_track says:
 #                                    #   main (default) — the tip of the default branch
@@ -10,14 +11,22 @@
 #   agent-tools/update.sh --check    # installed vs upstream VERSION, change nothing
 #
 # Everything under agent-tools/ is replaced except the paths in KEEP, which are
-# per-event and never shipped upstream; AGENTS.md (the generic contract) is
-# replaced too. Local edits to either are overwritten — per-event behaviour
-# belongs in event.yaml and EVENT.md, not here. Review `git diff` and commit
-# afterwards; nothing is committed for you.
+# per-event and never shipped upstream; the root AGENTS.md is replaced too.
+# Local edits to either are overwritten — per-event behaviour belongs in
+# event.yaml and EVENT.md, not here. Review `git diff` and commit afterwards;
+# nothing is committed for you.
+#
+# Refuses to run in the template itself (no event.yaml): there the engine is
+# edited in place, and the root AGENTS.md is the maintainer guide, not the
+# contract.
 # ---------------------------------------------------------------------------
 set -euo pipefail
 
 . "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
+if in_template; then
+  echo "update: no event.yaml — this is the template, not a workspace; nothing to update here." >&2
+  exit 1
+fi
 UPSTREAM="$(event_cfg agent_tools_upstream https://github.com/charlesbaynham/event-workspace)"
 TRACK="$(event_cfg agent_tools_track main)"
 KEEP=(skills/gsheets/assets)
@@ -61,7 +70,7 @@ for k in "${KEEP[@]}"; do
   [ -e "$TMP/keep/$k" ] || continue
   mkdir -p "$DEST/$(dirname "$k")" && cp -a "$TMP/keep/$k" "$DEST/$k"
 done
-cp "$TMP/AGENTS.md" "$ROOT/AGENTS.md"
+cp "$DEST/AGENTS.md" "$ROOT/AGENTS.md"
 
 echo "update: agent-tools is now $UP_VERSION ($REF) from $UPSTREAM"
 echo "update: review with 'git status' and 'git diff', then commit."

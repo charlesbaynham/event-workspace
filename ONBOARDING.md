@@ -35,16 +35,17 @@ answer however they like.**
 
 ## 1. Orient yourself
 
-Read, in this order: `README.md`, `AGENTS.md`, `event.yaml.example`,
-`EVENT.md.example`, `docs/agent-ops-notes.md`. `AGENTS.md` is the contract every
-later session in this repository is bound by — you cannot configure the
-workspace sensibly without it.
+Read, in this order: `README.md`, `agent-tools/AGENTS.md`, `event.yaml.example`,
+`EVENT.md.example`, `docs/agent-ops-notes.md`. `agent-tools/AGENTS.md` is the
+contract every later session in the new repository is bound by — you cannot
+configure the workspace sensibly without it. The root `AGENTS.md` you can see
+now is the template's own maintainer guide; step 4 replaces it.
 
-The shape to keep in mind: `agent-tools/` and `AGENTS.md` are the **engine**,
-vendored from upstream and overwritten wholesale by `agent-tools/update.sh`.
-Everything about *this* event lives in `event.yaml` (facts the tooling reads),
-`EVENT.md` (standing rules, who is who, stock answers) and `memory/`. You are
-filling in the second set and leaving the first alone.
+The shape to keep in mind: `agent-tools/` is the **engine**, vendored from
+upstream and overwritten wholesale by `agent-tools/update.sh`, and the contract
+ships inside it. Everything about *this* event lives in `event.yaml` (facts the
+tooling reads), `EVENT.md` (standing rules, who is who, stock answers) and
+`memory/`. You are filling in the second set and leaving the first alone.
 
 ## 2. The interview
 
@@ -133,6 +134,7 @@ are the reference for the next person, and `update.sh` does not touch them.
 cp event.yaml.example event.yaml
 cp EVENT.md.example EVENT.md
 cp automode.json.example automode.json     # only if auto-mode rules are on
+cp agent-tools/AGENTS.md AGENTS.md         # the contract replaces the template's maintainer guide
 ```
 
 **`event.yaml`** — `name`, `default_branch`, `agent_tools_track`, `owners`,
@@ -170,6 +172,11 @@ already gitignored; keys live in the agent environment.
 The workspace's whole premise is that what a session learns gets written down.
 This session learned the event exists.
 
+- **First, reset `memory/` to a fresh seed.** What is there is the template's
+  own working memory, not this event's. `memory/log.md` keeps only its header
+  comment and the `<!-- compaction-baseline: fresh workspace -->` line;
+  `memory/digest.md` keeps its five headings with `*(empty …)*` under each;
+  `memory/user-edits.md` keeps its header and `1. *(none yet)*`.
 - Append to `memory/log.md`, one line each, `- [YYYY-MM-DD] TYPE: observation`:
   the feature choices as `DECISION` lines with the reason, the repository URL
   and any spreadsheet ids as `RESOURCE` lines, and every prerequisite still
