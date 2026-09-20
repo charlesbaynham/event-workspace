@@ -43,8 +43,8 @@ Codex users: `.codex/hooks.json` and `.agents/skills/` wire the same engine.
 
 ## Updating
 
-The engine lives entirely in `agent-tools/`, versioned by `agent-tools/VERSION`
-and released as git tags here.
+The engine lives in `agent-tools/` plus the generic contract `AGENTS.md`,
+versioned by `agent-tools/VERSION` and released as git tags here.
 
 ```bash
 agent-tools/update.sh --check    # what's installed, what's latest
@@ -52,8 +52,9 @@ agent-tools/update.sh            # pull the latest tag over agent-tools/
 git diff && git commit -am "agent-tools: v0.2.0"
 ```
 
-Local edits to `agent-tools/` are overwritten on update — that is the point.
-Per-event behaviour belongs in `event.yaml`, `EVENT.md` and `memory/`.
+Local edits to `agent-tools/` and `AGENTS.md` are overwritten on update — that
+is the point. Per-event behaviour belongs in `event.yaml`, `EVENT.md` and
+`memory/`. `update.sh <sha>` works too, for a commit that has no tag yet.
 
 ## Design notes
 
