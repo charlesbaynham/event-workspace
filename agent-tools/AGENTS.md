@@ -321,15 +321,19 @@ it is worth saying so plainly rather than going quiet.
 it. How it follows upstream is `agent_tools_track` in `event.yaml`:
 
 - **`latest`** (or any branch name) — a bare `update.sh` takes that tip.
+  `agent-tools/hooks/version-check.sh` compares `agent-tools/` with upstream's
+  at `SessionStart` and reports **any** difference, version bump or not, listing
+  the files that differ.
 - **`pinned`** — the workspace keeps the version in `agent-tools/VERSION` and
-  nothing moves on its own; a bare `update.sh` refuses to change version.
-  `agent-tools/hooks/version-check.sh` compares that file with upstream's copy
-  at `SessionStart` and says when a newer one exists. No git tags are involved.
+  nothing moves on its own; a bare `update.sh` refuses to change version. The
+  same hook compares that file with upstream's copy and reports only a newer
+  version. No git tags are involved.
 
-When that hook reports a version, **put it to the owner and let them choose.
+When that hook reports an update, **put it to the owner and let them choose.
 Never update because an update exists.** The hook prints the
-`agent-tools/CHANGELOG.md` entries the workspace does not have yet: **give the
-owner those changes, not just the number** — summarise them in a line or two,
+`agent-tools/CHANGELOG.md` entries the workspace does not have yet (on `latest`
+there may be none — then it lists the changed files): **give the owner those
+changes, not just the number** — summarise them in a line or two,
 say plainly if anything is marked as needing action from them, and offer the
 full text. Four answers, and two of them are remembered so they are never asked
 again:
@@ -338,7 +342,7 @@ again:
 |---|---|
 | **Yes, update** | `agent-tools/update.sh --accept`, then read the diff, say what changed in it, and commit |
 | **Not now** | Nothing. Change no files; the hook offers it again next session |
-| **Not this version** | Append `X.Y.Z` to `agent_tools_version_skip` in `event.yaml` and commit. Later versions are still offered |
+| **Not this one** | Append the id the hook printed (`X.Y.Z` on `pinned`, the 12-character commit on `latest`) to `agent_tools_version_skip` in `event.yaml` and commit. Later ones are still offered |
 | **Never offer updates** | Set `agent_tools_update_check: off` in `event.yaml` and commit. Only the owner turns it back on |
 
 Raise it **once** per session, briefly, and drop it if they move on — an
