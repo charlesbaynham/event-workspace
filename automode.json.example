@@ -1,0 +1,19 @@
+{
+  "autoMode": {
+    "environment": [
+      "$defaults",
+      "This workspace is the agent memory store and WhatsApp bot for one event. The bot's WhatsApp connector (the mcp_prefix named in event.yaml) is the event's own number, run by the agent; sending through it is routine work for this workspace, and every autonomous send has already passed the workspace's own isolated send-gate subagent, which is the authorisation control for message content."
+    ],
+    "allow": [
+      "$defaults",
+      "Sending a WhatsApp message through the event bot's connector after the whatsapp-send-gate subagent returned VERDICT: SEND, or on the owner's explicit in-session instruction, is allowed without a second judgement on the content."
+    ],
+    "soft_deny": [
+      "$defaults"
+    ],
+    "hard_deny": [
+      "$defaults",
+      "Sending through any personal WhatsApp connector (a personal_prefixes server in event.yaml) in an unattended or routine-fired session is denied; only the bot's own connector is ever used unattended."
+    ]
+  }
+}

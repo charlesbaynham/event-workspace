@@ -19,16 +19,43 @@ Before starting one, know exactly what "done" looks like; pair the condition
 with a maximum wait; and treat hitting the timeout as the prompt to work out
 *why* (slow, wrong, or genuinely stuck), never as an answer in itself.
 
-## `autoMode` in a repository's settings is ignored
+## `autoMode` classifier rules: where they are read from, and when
 
-Claude Code's auto-mode classifier reads `autoMode` from user, managed and
-flag settings only. A block in `.claude/settings.json` or
-`.claude/settings.local.json` is skipped with a logged warning — a repo must
-not be able to grant itself allow rules. `permissions.allow/ask/deny` and hooks
-in the repo *are* read. So: put tool allow-lists in `permissions.allow` (both
-the `mcp__X__*` and `mcp__claude_ai_X__*` spellings — cloud and local sessions
-see different prefixes), and put any note to the classifier in the routine
-prompt, which is the one classifier-visible place a consumer controls.
+Claude Code's auto-mode classifier reads `autoMode` from user settings
+(`~/.claude/settings.json`), managed settings and the `--settings` flag only.
+A block in a repository's `.claude/settings.json` or `.claude/settings.local.json`
+is skipped with a logged warning (the local file was dropped in v2.1.207) — a
+repo must not be able to grant itself allow rules. `permissions.allow/ask/deny`
+and hooks in the repo *are* read. Plugins cannot carry `autoMode` either.
+
+Measured in a cloud session on 2026-09-20 (Claude Code 2.1.278):
+
+- **The container's own `~/.claude/settings.json` is read.** Rules an
+  environment setup script had written there appeared in
+  `claude auto-mode config` alongside the defaults. The settings doc's "user
+  settings are not read in cloud sessions" means your laptop's file is not
+  shipped; the file inside the container is ordinary user settings.
+- **A change made after session start is not honoured.** A `hard_deny` naming
+  an exact command, written mid-session (in manual mode, since in auto mode
+  the classifier denies the write itself as self-modification), showed up in
+  `claude auto-mode config` and was ignored by the classifier across two
+  mode switches. So a `SessionStart` hook that wrote rules would be too late,
+  quite apart from being the self-granting route the exclusion exists to
+  close.
+
+What this engine does about it: the consumer keeps its rules in
+`automode.json` at the repo root (start from `automode.json.example`);
+`agent-tools/automode/install.sh` merges them into `~/.claude/settings.json`
+and is meant to run from the cloud environment's setup script, before the
+session starts (`install.sh --inline` prints a self-contained block to paste
+if the setup script runs before the clone; on a local machine, run it once by
+hand). `agent-tools/hooks/automode-check.sh` reports at every session start
+whether the installed rules match the repo, so drift is visible rather than
+assumed away. Anything the classifier must hear *in-session* — "the send-gate
+is the authorisation control for message content" — goes in the routine
+prompt, which it does read; the `permissions.allow` entries for the bot's
+tools go in `.claude/settings.json` in both spellings (`mcp__X__*` and
+`mcp__claude_ai_X__*`), which is also read from the repo.
 
 ## The checkout is a restored snapshot, not a fresh clone
 
