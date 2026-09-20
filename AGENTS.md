@@ -55,7 +55,12 @@ the shipped contract being in context here.
   `CLAUDE.md`, `.claude/`, `.codex/`, `.agents/`, the `.example` files,
   `memory/`, `docs/`. Changing them later changes nothing for a workspace
   that already exists.
-- `ONBOARDING.md` is one-shot: the child deletes it in its first commit.
+- `ONBOARDING.md` is one-shot: the child deletes it in its first commit. It is
+  also what makes a clone stop looking like the template — it installs
+  `agent-tools/AGENTS.md` as the child's root `AGENTS.md`, trims `CLAUDE.md`,
+  rewrites the README for the event, resets `memory/`, and drops
+  `docs/spin-out-plan.md`. Change any of those files here and check whether
+  `ONBOARDING.md` still says the right thing about them.
 - `.claude/skills/*` and `.claude/agents/*` are symlinks into `agent-tools/`;
   `.agents/skills/*` (Codex) are stub files pointing at the same place. A new
   skill or agent needs its entry in both.
