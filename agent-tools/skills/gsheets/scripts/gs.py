@@ -24,9 +24,10 @@ Auth resolution order (first hit wins):
   2. $GOOGLE_APPLICATION_CREDENTIALS -- path to the JSON key file
   3. ~/.config/gsheets/sa.json
   4. ./sa.json
+  5. assets/sa.json next to this skill (gitignored; upstream ships none)
 
-No key is bundled: a service-account key is a live credential and does not
-belong in a repository. Set (1) in the agent environment's variables.
+A service-account key is a live credential and does not belong in a
+repository: prefer (1), set in the agent environment's variables.
 
 Only deps: google-api-python-client, google-auth. pandas is optional and
 imported lazily, so the CLI works without it.
@@ -56,6 +57,7 @@ _HERE = Path(__file__).resolve().parent
 DEFAULT_KEY_PATHS = [
     Path.home() / ".config" / "gsheets" / "sa.json",
     Path("sa.json"),
+    _HERE.parent / "assets" / "sa.json",  # a consumer's own key; never shipped
 ]
 
 
