@@ -46,14 +46,27 @@ fresh clone and the template itself look identical on disk.
 The point of this document is that nobody hand-edits a prompt. **You ask, they
 answer however they like.**
 
-- Ask in the three rounds below, one message per round — not one question at a
-  time, and not all fifteen at once.
+- **Ask with your harness's structured question tool** (in Claude Code,
+  `AskUserQuestion`) wherever the answer is a choice from a short list — most
+  of rounds 2 and 3, and questions 2, 3 and 5 of round 1. A menu with the
+  options in front of them gets answered; a wall of prose gets skimmed and
+  half-answered. If your harness has no such tool, ask in prose and carry on.
+- **Put the default first and mark it** — `(Recommended)` in the label, and one
+  line in the option's description saying what it commits them to. Set
+  `multiSelect` where several answers can be true at once: co-users, which
+  features are on, which agents will open the repository.
+- **Free text is never closed off.** The tool carries an "Other" escape, and a
+  prose answer to a menu question is a valid answer. Say so once, at the start.
+- **Batch by round, inside the tool's limits.** Claude Code takes up to four
+  questions per call with two to four options each, so a round may need two
+  calls back to back — still one round's worth of thinking, not one question at
+  a time, and never all fifteen at once. The genuinely open questions (the
+  event line, anyone else worth knowing about, the repository name) go as plain
+  text in the message that carries the call.
 - Prose answers, partial answers, "you decide", and answers to questions you
   did not ask are all valid. Take what they give you and carry on.
 - Every question has a default. Offer it. If they skip a question, use the
   default and tell them so in the recap.
-- If your harness has a structured question tool, use it for the
-  multiple-choice rounds — but always accept free text as well.
 - The person running setup is an **owner** in this workspace's terms:
   technical, terse, no emoji. Say the number, name the file.
 - Do not touch the network or write a single file until they have confirmed the
@@ -96,8 +109,11 @@ leave the first alone.
 
 ### Round 2 — features
 
-Present this as a menu with the defaults marked, and say that "all the
-defaults" is a complete answer.
+This round is the clearest case for the question tool: every row below is a
+small choice with a default. Memory is not a question, so the other six split
+into two calls — Sheets, WhatsApp, auto-mode, agents, then track and default
+branch. Mark the defaults, and say that "all the defaults" is a complete
+answer.
 
 | Feature | Question | Default |
 |---|---|---|
@@ -129,11 +145,12 @@ Three things to be straight about when they ask:
 
 ### Round 3 — where it lives
 
-1. **GitHub repository** — owner/name. Default: private. The memory is
-   deliberately readable by every session; it is not written to be public.
-2. **How will you open it?** Claude Code on the web (a cloud environment, so
-   the auto-mode installer needs to go in the environment's setup script),
-   locally, or both.
+1. **GitHub repository** — owner/name, which is free text, and visibility,
+   which is a choice: private (default — the memory is deliberately readable by
+   every session and is not written to be public) or public.
+2. **How will you open it?** A choice: Claude Code on the web (a cloud
+   environment, so the auto-mode installer needs to go in the environment's
+   setup script), locally, or both.
 
 ### Recap, then stop
 
@@ -142,7 +159,10 @@ and co-users, source of truth, each feature on/later/off, repository name and
 visibility, track, default branch, and any defaults you applied because they
 skipped a question. Ask one question: **is this right?**
 
-Wait for the answer. Change what they correct. Only then write files.
+Ask it with the question tool as well — "go ahead" against "something needs
+changing", so a yes is one click and a correction arrives as their own words.
+Wait for the answer. Change what they correct, and re-ask if the correction
+touches enough to be worth confirming again. Only then write files.
 
 ## 3. Make it their repository, not a fork
 
