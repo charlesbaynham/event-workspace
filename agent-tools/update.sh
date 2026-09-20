@@ -8,9 +8,10 @@
 #   agent-tools/update.sh --check    # report the latest tag, change nothing
 #
 # Everything under agent-tools/ is replaced except the paths in KEEP, which are
-# per-event and never shipped upstream. Local edits anywhere else are
-# overwritten — per-event behaviour belongs in event.yaml and EVENT.md, not
-# here. Review `git diff` and commit afterwards; nothing is committed for you.
+# per-event and never shipped upstream; AGENTS.md (the generic contract) is
+# replaced too. Local edits to either are overwritten — per-event behaviour
+# belongs in event.yaml and EVENT.md, not here. Review `git diff` and commit
+# afterwards; nothing is committed for you.
 # ---------------------------------------------------------------------------
 set -euo pipefail
 
@@ -32,10 +33,13 @@ fi
 [ -n "$REF" ] || { echo "update: no release tag found at $UPSTREAM" >&2; exit 1; }
 
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
-git clone --quiet --depth 1 --branch "$REF" "$UPSTREAM" "$TMP/src"
+git -C "$TMP" init --quiet
+git -C "$TMP" fetch --quiet --depth 1 "$UPSTREAM" "$REF"   # a tag, branch or sha alike
+git -C "$TMP" checkout --quiet FETCH_HEAD
 
 EXCLUDES=(); for k in "${KEEP[@]}"; do EXCLUDES+=(--exclude "$k"); done
-rsync -a --delete "${EXCLUDES[@]}" "$TMP/src/agent-tools/" "$DEST/"
+rsync -a --delete "${EXCLUDES[@]}" "$TMP/agent-tools/" "$DEST/"
+cp "$TMP/AGENTS.md" "$ROOT/AGENTS.md"
 
 echo "update: agent-tools is now $(cat "$DEST/VERSION") ($REF) from $UPSTREAM"
 echo "update: review with 'git status' and 'git diff', then commit."
