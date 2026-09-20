@@ -51,7 +51,10 @@ session starts (`install.sh --inline` prints a self-contained block to paste
 if the setup script runs before the clone; on a local machine, run it once by
 hand). `agent-tools/hooks/automode-check.sh` reports at every session start
 whether the installed rules match the repo, so drift is visible rather than
-assumed away. Anything the classifier must hear *in-session* — "the send-gate
+assumed away. Known limit: `install.sh` sets the whole `autoMode` key, so an
+environment that serves several workspaces keeps whichever ran last — give
+each workspace its own cloud environment, or merge the lists by hand.
+Anything the classifier must hear *in-session* — "the send-gate
 is the authorisation control for message content" — goes in the routine
 prompt, which it does read; the `permissions.allow` entries for the bot's
 tools go in `.claude/settings.json` in both spellings (`mcp__X__*` and
