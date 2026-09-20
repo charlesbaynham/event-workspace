@@ -36,6 +36,7 @@ note() { printf 'version hook: %s\n' "$1"; }
 . "$(dirname "${BASH_SOURCE[0]}")/../lib.sh"
 cd "$ROOT" 2>/dev/null || exit 0
 
+in_template && exit 0
 TRACK="$(update_track)"
 case "$(event_cfg agent_tools_update_check on)" in
   off|false|no) exit 0 ;;
