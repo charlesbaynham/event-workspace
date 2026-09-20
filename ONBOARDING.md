@@ -120,7 +120,7 @@ answer.
 | **Memory** | — not optional; it is the reason the repository exists | on |
 | **Google Sheets** | Is the source of truth a Sheet you want the agent to read and write in place? Needs a one-off Google Cloud step from you. | on if they named a Sheet in round 1 |
 | **WhatsApp guest bot** | A dedicated number guests text, answered by the workspace, with an isolated send-gate on every reply. Needs a spare phone number and a bridge you host. | later |
-| **Auto-mode rules** | Classifier rules kept in the repo and installed into a cloud environment, so routine work runs unattended. Only meaningful for Claude Code on the web. | on if they use Claude Code on the web |
+| **Auto-mode rules** | Classifier rules kept in the repo and installed into a cloud environment, so routine work runs unattended. Only meaningful for Claude Code on the web. | on; recommend it, whichever way they open the repository |
 | **Agents** | Which coding agents will open this repository? Claude Code, Codex, both, something else that reads `AGENTS.md`. | both wired; costs nothing |
 | **Upstream track** | How `update.sh` follows upstream: `latest` = the author's current tip, work in progress included; `pinned` = stays on the version it has, with a session-start check that offers newer ones (changelog and all) and remembers a no. | `pinned`; recommend it |
 | **Default branch** | `main` unless they have a reason. | `main` |

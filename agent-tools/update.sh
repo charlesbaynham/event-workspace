@@ -105,10 +105,9 @@ echo "update: review with 'git status' and 'git diff', then commit."
 # The hook lives in agent-tools/ and so arrives with every update, but the
 # files that RUN it are per-event and were only ever written at birth — a
 # workspace that does not name it has to be told once.
-if [ "$TRACK" = pinned ] \
-   && ! grep -qs 'version-check\.sh' "$ROOT/.claude/settings.json" "$ROOT/.codex/hooks.json"; then
-  echo "update: this workspace is pinned but does not run"
+if ! grep -qs 'version-check\.sh' "$ROOT/.claude/settings.json" "$ROOT/.codex/hooks.json"; then
+  echo "update: this workspace does not run"
   echo "update: agent-tools/hooks/version-check.sh at SessionStart, so nothing will tell you"
-  echo "update: when a new version lands. Add it beside the other SessionStart hooks in"
+  echo "update: when upstream has something new. Add it beside the other SessionStart hooks in"
   echo "update: .claude/settings.json (and .codex/hooks.json if you use Codex)."
 fi

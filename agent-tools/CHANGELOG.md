@@ -10,14 +10,36 @@ with no behaviour change. **Until 1.0.0, breaking changes ride in a minor and
 keep no compatibility shims** — the entry says so, and lists what to edit under
 **To do by hand**.
 
-A workspace on the `pinned` track is shown every entry newer than the version
-it runs, both by `agent-tools/hooks/version-check.sh` at session start and by
+A workspace is shown every entry newer than the version it runs, both by `agent-tools/hooks/version-check.sh` at session start and by
 `agent-tools/update.sh`. Write each entry for that reader: what changed, and
 what they have to do about it.
 
 <!-- Maintainers: the bump-version skill (template only) writes this file and
      VERSION together, in the same commit as the change. One `## X.Y.Z — date`
      heading per version; headings are what the tooling parses. -->
+
+## 0.7.0 — 2026-09-20
+
+### Changed
+
+- **`latest` (and branch-named) tracks now hear about updates too.**
+  `agent-tools/hooks/version-check.sh` used to be silent unless the workspace
+  was `pinned`. It now compares `agent-tools/` with upstream's tip on every
+  track: on `pinned` a newer `VERSION` is still the only trigger; on `latest`
+  **any** difference is, version bump or not, and the hook lists the files that
+  differ. The contract's "Updating the engine" section offers it to the owner
+  with the same four answers as before.
+- `agent_tools_version_skip` on `latest` takes the 12-character upstream commit
+  the hook prints, not a version number — declining one tip does not silence
+  the next.
+- `update.sh` warns about a workspace that does not run the hook on any track,
+  not just `pinned`.
+
+### To do by hand
+
+- Nothing required. Workspaces created from the template already run the hook;
+  if `update.sh` says yours does not, add it beside the other `SessionStart`
+  hooks in `.claude/settings.json` (and `.codex/hooks.json` for Codex).
 
 ## 0.6.0 — 2026-09-20
 

@@ -10,12 +10,12 @@ agent_tools_upstream: https://github.com/charlesbaynham/event-workspace
 # workspace is already on (agent-tools/VERSION) and never moves on its own.
 # Any other value is used as a branch name.
 agent_tools_track: pinned
-# On the `pinned` track only: the SessionStart hook compares agent-tools/VERSION
-# with upstream's, quotes the changelog entries you do not have, and offers the
-# update. Both keys below are written by an agent when you answer one of those
+# The SessionStart hook compares agent-tools/ with upstream's — on `pinned`
+# only a newer VERSION counts, on `latest` any difference does — quotes the
+# changelog entries you do not have, and offers the update. Both keys below are written by an agent when you answer one of those
 # offers — leave them out until then.
 # agent_tools_update_check: off            # stop offering updates entirely
-# agent_tools_version_skip: 0.6.0, 0.7.0   # versions you have declined
+# agent_tools_version_skip: 0.6.0, abc123def456   # declined: versions (pinned) or upstream commits (latest)
 
 # Whose word is authoritative in a session. Technical register.
 owners: [Ada]
