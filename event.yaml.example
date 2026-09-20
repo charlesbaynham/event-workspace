@@ -1,0 +1,35 @@
+# Per-event configuration. Copy to event.yaml and fill in. Top-level scalars
+# are read by the hooks (default_branch, agent_tools_upstream); everything
+# else is read by the skills as prose. Nothing here is secret — no tokens.
+
+name: "Ada & Ben's wedding"
+default_branch: main
+agent_tools_upstream: https://github.com/charlesbaynham/event-workspace
+
+# Whose word is authoritative in a session. Technical register.
+owners: [Ada]
+# Non-technical people who also use the workspace. Warm register, no mechanics.
+co_users: [Ben]
+
+# Where the facts live. The repo's memory/ is an index of this, never a
+# replacement for it.
+source_of_truth: "the Master File (Google Sheet)"
+sheets:
+  master: <spreadsheet id>
+  live_forms:                      # sources that change continuously — re-read live
+    rsvps: <spreadsheet id>
+
+whatsapp:
+  bot_name: EventBot
+  mcp_prefix: mcp__Event_Whatsapp__          # the bot's connector
+  personal_prefixes: [mcp__Whatsapp__]       # anyone's personal account; never unattended
+  identity_roster: "the Guests tab of the Master File"
+  shareable: [where people are staying]      # categories the owner may approve sharing
+  read_only_chats: []                        # e.g. ["Ada and Ben planning"] — §13
+  gate_exempt: []                            # §14 — each entry needs provenance:
+  #  - number: "447700900123"
+  #    name: Ben
+  #    authorised_by: Ada
+  #    date: 2026-09-11
+  #    where: "in a Claude Code session, recorded in memory/whatsapp/447700900123.xml"
+  routine_name: "EventBot WhatsApp webhook"
