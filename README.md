@@ -44,7 +44,7 @@ first commit, so your repository never carries it.
 | **gsheets** skill | Read and write the event's Google Sheet in place via a service account. Ships no key. |
 | **Two registers** | A technical owner and non-technical co-users get different voices, the same facts. |
 | **Classifier rules** (`automode.json`, `agent-tools/automode/`) | Auto-mode rules kept in the repo, installed into the environment by a script the setup script calls, with a session-start drift check. A repo cannot ship these directly; see the ops notes. |
-| **The contract** (`AGENTS.md`) | The rules above, written for an agent to follow. Generic; updated from upstream. |
+| **The contract** (`agent-tools/AGENTS.md`, installed as your root `AGENTS.md`) | The rules above, written for an agent to follow. Generic; updated from upstream. This repository's own root `AGENTS.md` is the maintainer guide for the template, not the contract. |
 
 ## Getting started by hand
 
@@ -54,7 +54,10 @@ yourself:
 1. **Use this template** (GitHub → *Use this template*) into a private repo.
 2. Copy `event.yaml.example` → `event.yaml` and `EVENT.md.example` → `EVENT.md`;
    fill them in. Everything about *your* event goes in those two files and in
-   `memory/`; never in `agent-tools/`.
+   `memory/`; never in `agent-tools/`. Then `cp agent-tools/AGENTS.md AGENTS.md`
+   — the contract replaces the template's maintainer guide — and empty
+   `memory/log.md` back to its header: what is there is the template's own
+   history.
 3. If the source of truth is a Google Sheet: run
    `agent-tools/skills/gsheets/scripts/bootstrap_gcp.sh` once in Cloud Shell,
    put the key it prints in the agent environment as
@@ -74,13 +77,14 @@ Codex users: `.codex/hooks.json` and `.agents/skills/` wire the same engine.
 
 ## Updating
 
-The engine lives in `agent-tools/` plus the generic contract `AGENTS.md`,
-versioned by `agent-tools/VERSION`.
+The engine lives in `agent-tools/`, versioned by `agent-tools/VERSION`. It
+includes the contract, `agent-tools/AGENTS.md`, which `update.sh` reinstalls
+as your root `AGENTS.md`.
 
 ```bash
 agent-tools/update.sh --check    # installed vs upstream, changes nothing
-agent-tools/update.sh            # pull upstream over agent-tools/ and AGENTS.md
-git diff && git commit -am "agent-tools: 0.3.0"
+agent-tools/update.sh            # pull upstream over agent-tools/, reinstall AGENTS.md
+git diff && git commit -am "agent-tools: 0.4.0"
 ```
 
 What "upstream" means is your choice, recorded as `agent_tools_track` in
@@ -94,11 +98,14 @@ What "upstream" means is your choice, recorded as `agent_tools_track` in
   (`event.yaml` keys, file layout, the skill's section numbers). Pick this if
   you would rather not be surprised.
 
-`update.sh <tag|branch|full sha>` overrides the track for one run. Upgrading
-from 0.2.0 or earlier: that `update.sh` only knew about tags, so copy the
-current one from upstream over yours before running it. Local edits
-to `agent-tools/` and `AGENTS.md` are overwritten on update — that is the
-point. Per-event behaviour belongs in `event.yaml`, `EVENT.md` and `memory/`.
+`update.sh <tag|branch|full sha>` overrides the track for one run. **Upgrading
+from 0.3.x or earlier: copy the current `agent-tools/update.sh` from upstream
+over yours before running it.** Older versions only knew about tags (0.2.0 and
+before) or copied the template's *root* `AGENTS.md` over yours (0.3.x) — and
+since 0.4.0 that file is the template's maintainer guide, not the contract.
+Local edits to `agent-tools/` and `AGENTS.md` are overwritten on update — that
+is the point. Per-event behaviour belongs in `event.yaml`, `EVENT.md` and
+`memory/`.
 
 ## Design notes
 
