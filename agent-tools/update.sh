@@ -5,16 +5,19 @@
 # as this repository's root AGENTS.md.
 #
 #   agent-tools/update.sh            # what event.yaml's agent_tools_track says:
-#                                    #   main (default) — the tip of the default branch
-#                                    #   tags           — PINNED: the tag this workspace is
-#                                    #                    already on (agent-tools/VERSION), so
-#                                    #                    a release never arrives unasked
-#   agent-tools/update.sh v0.2.0     # an explicit tag, branch or full sha — how a pinned
-#                                    #   workspace moves to a new release
+#                                    #   latest (default) — upstream's current tip
+#                                    #   pinned           — the version in agent-tools/VERSION:
+#                                    #                      refreshes it, but refuses to move to
+#                                    #                      a different one without --accept
+#   agent-tools/update.sh --accept   # take the version upstream has now — how a pinned
+#                                    #   workspace moves, after being offered a release
+#   agent-tools/update.sh v0.2.0     # an explicit tag, branch or full sha, whatever the track
 #   agent-tools/update.sh --check    # installed vs upstream VERSION, change nothing
 #
-# On the `tags` track, agent-tools/hooks/tag-check.sh is what tells you a newer
-# release exists; AGENTS.md ("Updating the engine") says what to do about it.
+# Versions are the text of agent-tools/VERSION, not git tags: on the `pinned`
+# track agent-tools/hooks/version-check.sh compares the two at SessionStart,
+# quotes agent-tools/CHANGELOG.md for everything in between, and offers it.
+# AGENTS.md ("Updating the engine") says what to do about that offer.
 #
 # Everything under agent-tools/ is replaced except the paths in KEEP, which are
 # per-event and never shipped upstream; the root AGENTS.md is replaced too.
@@ -33,48 +36,51 @@ if in_template; then
   echo "update: no event.yaml — this is the template, not a workspace; nothing to update here." >&2
   exit 1
 fi
-UPSTREAM="$(event_cfg agent_tools_upstream https://github.com/charlesbaynham/event-workspace)"
-TRACK="$(event_cfg agent_tools_track main)"
+UPSTREAM="$(upstream_url)"
+TRACK="$(update_track)"
 KEEP=(skills/gsheets/assets)
 DEST="$ROOT/agent-tools"
+INSTALLED="$(tr -d '[:space:]' < "$DEST/VERSION")"
 
-# `tags` is a pin, not a stream: it resolves to the tag matching the installed
-# VERSION, so a bare update.sh reinstalls exactly what is already here. Moving
-# to a release is always an explicit argument, prompted by tag-check.sh.
-pinned_tag() {
-  local want="v$(tr -d '[:space:]' < "$DEST/VERSION")"
-  if [ -z "$(git ls-remote --tags --refs "$UPSTREAM" "$want" 2>/dev/null)" ]; then
-    echo "update: track 'tags' pins this workspace to $want, but $UPSTREAM has no such tag." >&2
-    echo "update: pass the release you want explicitly, e.g. agent-tools/update.sh v0.5.0" >&2
-    exit 1
-  fi
-  printf '%s\n' "$want"
-}
-
-resolve_ref() {
-  case "$TRACK" in
-    tags) pinned_tag ;;
-    *)    printf '%s\n' "$TRACK" ;;   # a branch name; "main" unless the consumer set otherwise
-  esac
-}
-
-REF="${1:-}"; MODE=install
-if [ "$REF" = "--check" ]; then MODE=check; REF=""; fi
-[ -n "$REF" ] || REF="$(resolve_ref)"
+# A bare run follows the track. An explicit ref, or --accept, is the consent
+# that lets a pinned workspace land on a different version.
+MODE=install; REF=""; ACCEPT=0
+case "${1:-}" in
+  "")       ;;
+  --check)  MODE=check ;;
+  --accept) ACCEPT=1 ;;
+  -*)       echo "update: unknown option '$1' — try --check, --accept, or a ref." >&2; exit 1 ;;
+  *)        REF="$1"; ACCEPT=1 ;;
+esac
+[ -n "$REF" ] || REF="$(track_ref)"
 [ -n "$REF" ] || { echo "update: nothing to fetch — track '$TRACK' resolved to no ref at $UPSTREAM" >&2; exit 1; }
 
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 git -C "$TMP" init --quiet
-git -C "$TMP" fetch --quiet --depth 1 "$UPSTREAM" "$REF"   # a tag, branch or full sha alike
+# A branch, tag, sha or HEAD alike.
+if ! git -C "$TMP" fetch --quiet --depth 1 "$UPSTREAM" "$REF"; then
+  echo "update: could not fetch '$REF' from $UPSTREAM." >&2
+  echo "update: agent_tools_track is '$TRACK' — the tracks are 'latest', 'pinned', or a branch name." >&2
+  exit 1
+fi
 git -C "$TMP" checkout --quiet FETCH_HEAD
-UP_VERSION="$(cat "$TMP/agent-tools/VERSION")"
+UP_VERSION="$(tr -d '[:space:]' < "$TMP/agent-tools/VERSION")"
 
 if [ "$MODE" = check ]; then
-  echo "installed: $(cat "$DEST/VERSION")   upstream ($REF): $UP_VERSION   track: $TRACK   $UPSTREAM"
-  if [ "$TRACK" = tags ]; then
-    echo "track 'tags' is a pin: this stays on $REF until you name another release."
+  echo "installed: $INSTALLED   upstream ($REF): $UP_VERSION   track: $TRACK   $UPSTREAM"
+  if [ "$TRACK" = pinned ] && [ "$INSTALLED" != "$UP_VERSION" ]; then
+    echo "track 'pinned' stays on $INSTALLED; take $UP_VERSION with 'agent-tools/update.sh --accept'."
+    changelog_since "$TMP/agent-tools/CHANGELOG.md" "$INSTALLED"
   fi
   exit 0
+fi
+
+if [ "$TRACK" = pinned ] && [ "$ACCEPT" = 0 ] && [ "$INSTALLED" != "$UP_VERSION" ]; then
+  echo "update: this workspace is pinned to $INSTALLED; upstream is now $UP_VERSION." >&2
+  echo "update: a bare update keeps the pin. Take it with 'agent-tools/update.sh --accept'," >&2
+  echo "update: or name a ref explicitly. What changed:" >&2
+  changelog_since "$TMP/agent-tools/CHANGELOG.md" "$INSTALLED" >&2
+  exit 1
 fi
 
 # No rsync in the cloud containers this runs in, so: set the kept paths aside,
@@ -91,15 +97,18 @@ done
 cp "$DEST/AGENTS.md" "$ROOT/AGENTS.md"
 
 echo "update: agent-tools is now $UP_VERSION ($REF) from $UPSTREAM"
+if version_gt "$UP_VERSION" "$INSTALLED"; then
+  changelog_since "$DEST/CHANGELOG.md" "$INSTALLED"
+fi
 echo "update: review with 'git status' and 'git diff', then commit."
 
 # The hook lives in agent-tools/ and so arrives with every update, but the
 # files that RUN it are per-event and were only ever written at birth — a
-# workspace older than the hook has to be told once.
-if [ "$TRACK" = tags ] \
-   && ! grep -qs 'tag-check.sh' "$ROOT/.claude/settings.json" "$ROOT/.codex/hooks.json"; then
-  echo "update: this workspace is on the 'tags' track but does not run"
-  echo "update: agent-tools/hooks/tag-check.sh at SessionStart, so nothing will tell you"
-  echo "update: when a release lands. Add it beside the other SessionStart hooks in"
+# workspace that does not name it has to be told once.
+if [ "$TRACK" = pinned ] \
+   && ! grep -qs 'version-check\.sh' "$ROOT/.claude/settings.json" "$ROOT/.codex/hooks.json"; then
+  echo "update: this workspace is pinned but does not run"
+  echo "update: agent-tools/hooks/version-check.sh at SessionStart, so nothing will tell you"
+  echo "update: when a new version lands. Add it beside the other SessionStart hooks in"
   echo "update: .claude/settings.json (and .codex/hooks.json if you use Codex)."
 fi

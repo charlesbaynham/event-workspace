@@ -320,27 +320,31 @@ it is worth saying so plainly rather than going quiet.
 `agent-tools/` is vendored from upstream and `agent-tools/update.sh` refreshes
 it. How it follows upstream is `agent_tools_track` in `event.yaml`:
 
-- **`main`** (or any branch name) — a bare `update.sh` takes that tip.
-- **`tags`** — **a pin.** The workspace stays on the release in
-  `agent-tools/VERSION`; a bare `update.sh` reinstalls that same release and
-  nothing moves on its own. `agent-tools/hooks/tag-check.sh` checks upstream at
-  `SessionStart` and says when a newer release exists.
+- **`latest`** (or any branch name) — a bare `update.sh` takes that tip.
+- **`pinned`** — the workspace keeps the version in `agent-tools/VERSION` and
+  nothing moves on its own; a bare `update.sh` refuses to change version.
+  `agent-tools/hooks/version-check.sh` compares that file with upstream's copy
+  at `SessionStart` and says when a newer one exists. No git tags are involved.
 
-When that hook reports a release, **put it to the owner and let them choose.
-Never update because a release exists.** Four answers, and two of them are
-remembered so they are never asked again:
+When that hook reports a version, **put it to the owner and let them choose.
+Never update because an update exists.** The hook prints the
+`agent-tools/CHANGELOG.md` entries the workspace does not have yet: **give the
+owner those changes, not just the number** — summarise them in a line or two,
+say plainly if anything is marked as needing action from them, and offer the
+full text. Four answers, and two of them are remembered so they are never asked
+again:
 
 | They say | You do |
 |---|---|
-| **Yes, update** | `agent-tools/update.sh vX.Y.Z`, then read the diff, say what changed in it, and commit |
+| **Yes, update** | `agent-tools/update.sh --accept`, then read the diff, say what changed in it, and commit |
 | **Not now** | Nothing. Change no files; the hook offers it again next session |
-| **Not this release** | Append `vX.Y.Z` to `agent_tools_tag_skip` in `event.yaml` and commit. Later releases are still offered |
-| **Never offer releases** | Set `agent_tools_tag_check: off` in `event.yaml` and commit. Only the owner turns it back on |
+| **Not this version** | Append `X.Y.Z` to `agent_tools_version_skip` in `event.yaml` and commit. Later versions are still offered |
+| **Never offer updates** | Set `agent_tools_update_check: off` in `event.yaml` and commit. Only the owner turns it back on |
 
 Raise it **once** per session, briefly, and drop it if they move on — an
 unanswered offer is "not now". Both keys are the owner's; write them only on
-something they said in the conversation, and never as a way of silencing a
-release you would rather not deal with. An update rewrites `agent-tools/` and
+something they said in the conversation, and never as a way of silencing an
+update you would rather not deal with. An update rewrites `agent-tools/` and
 the root `AGENTS.md` wholesale, so do it as its own commit, never folded into
 event work.
 

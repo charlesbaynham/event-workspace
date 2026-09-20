@@ -17,7 +17,7 @@
           },
           {
             "type": "command",
-            "command": "\"$(git rev-parse --show-toplevel)/agent-tools/hooks/tag-check.sh\""
+            "command": "\"$(git rev-parse --show-toplevel)/agent-tools/hooks/version-check.sh\""
           }
         ]
       }

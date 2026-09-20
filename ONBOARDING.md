@@ -122,7 +122,7 @@ answer.
 | **WhatsApp guest bot** | A dedicated number guests text, answered by the workspace, with an isolated send-gate on every reply. Needs a spare phone number and a bridge you host. | later |
 | **Auto-mode rules** | Classifier rules kept in the repo and installed into a cloud environment, so routine work runs unattended. Only meaningful for Claude Code on the web. | on if they use Claude Code on the web |
 | **Agents** | Which coding agents will open this repository? Claude Code, Codex, both, something else that reads `AGENTS.md`. | both wired; costs nothing |
-| **Upstream track** | How `update.sh` follows upstream: `main` = the author's current tip, work in progress included; `tags` = pinned to one release, with a session-start check that offers newer ones and remembers a no. | `tags`; recommend it |
+| **Upstream track** | How `update.sh` follows upstream: `latest` = the author's current tip, work in progress included; `pinned` = stays on the version it has, with a session-start check that offers newer ones (changelog and all) and remembers a no. | `pinned`; recommend it |
 | **Default branch** | `main` unless they have a reason. | `main` |
 
 Three things to be straight about when they ask:
@@ -266,7 +266,10 @@ engine (`agent-tools/update.sh --check`, then `update.sh`, then commit the
 diff). Link `docs/agent-ops-notes.md`, which the contract also cites.
 
 `docs/spin-out-plan.md` is the template's own design history and nothing in a
-workspace refers to it — delete it unless they want to keep it.
+workspace refers to it — delete it unless they want to keep it. Delete the
+`bump-version` skill too (`.claude/skills/bump-version/`,
+`.agents/skills/bump-version/`): releasing engine versions is the template's
+job, and a workspace only ever receives them.
 
 ## 7. Check it actually looks like a workspace
 
@@ -284,13 +287,13 @@ agent-tools/hooks/git-sync.sh                # "could not fetch origin/main" unt
 agent-tools/hooks/memory-check.sh            # a nearly empty log, digest empty: the fresh seed
 agent-tools/hooks/automode-check.sh          # silent if auto-mode is off; a drift report is
                                              #  expected until install.sh runs from this repo
-agent-tools/hooks/tag-check.sh               # on the tags track: "pinned to vX.Y.Z; no newer
-                                             #  release upstream". Silent on any other track.
-                                             #  "no such tag" means you cloned ahead of the
-                                             #  newest tag — pick a release with update.sh vX.Y.Z
+agent-tools/hooks/version-check.sh           # on the pinned track: "pinned to X.Y.Z; nothing
+                                             #  newer upstream" (you have just cloned it).
+                                             #  Silent on any other track.
 grep -rn '^@' memory/*.md memory/notes/      # nothing. (memory/whatsapp/CLAUDE.md is the one
                                              #  deliberate import and is not in that set)
-ls -l .claude/skills .claude/agents          # symlinks, relative, resolving into agent-tools/
+ls -l .claude/skills .claude/agents          # symlinks, relative, resolving into agent-tools/;
+                                             #  no bump-version/ left (step 6)
 ```
 
 Fix anything that complains beyond those expected messages. A hook that fails
