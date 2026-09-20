@@ -121,7 +121,9 @@ What "upstream" means is your choice, recorded as `agent_tools_track` in
   (`event.yaml` keys, file layout, the skill's section numbers). Pick this if
   you would rather not be surprised.
 
-`update.sh <tag|branch|full sha>` overrides the track for one run. Local edits
+`update.sh <tag|branch|full sha>` overrides the track for one run. Upgrading
+from 0.2.0 or earlier: that `update.sh` only knew about tags, so copy the
+current one from upstream over yours before running it. Local edits
 to `agent-tools/` and `AGENTS.md` are overwritten on update — that is the
 point. Per-event behaviour belongs in `event.yaml`, `EVENT.md` and `memory/`.
 
