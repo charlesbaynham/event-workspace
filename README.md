@@ -19,6 +19,7 @@ session no worse off than itself.
 | **WhatsApp** (`whatsapp` skill, `whatsapp-send-gate` agent) | A dedicated bot number answers guests. Every reply is drafted, recorded, then judged by an isolated subagent that sees only the transcript, the draft, and an identity check. Anything about another guest, anyone's money, or anything embarrassing waits for the owner. One thread file per guest is the durable record. Webhook-driven: each message wakes a fresh session. |
 | **gsheets** skill | Read and write the event's Google Sheet in place via a service account. Ships no key. |
 | **Two registers** | A technical owner and non-technical co-users get different voices, the same facts. |
+| **Classifier rules** (`automode.json`, `agent-tools/automode/`) | Auto-mode rules kept in the repo, installed into the environment by a script the setup script calls, with a session-start drift check. A repo cannot ship these directly; see the ops notes. |
 | **The contract** (`AGENTS.md`) | The rules above, written for an agent to follow. Generic; updated from upstream. |
 
 ## Getting started
@@ -35,7 +36,10 @@ session no worse off than itself.
    for the prerequisites — a second phone number, the bridge, a connector), then
    open a session and say "set up the WhatsApp routine". The skill walks both of
    you through it.
-5. Open a session. The hooks put it on the default branch and tell it whether
+5. Optional: copy `automode.json.example` → `automode.json` and call
+   `agent-tools/automode/install.sh` from the cloud environment's setup script
+   (see `docs/agent-ops-notes.md` for why it has to be there).
+6. Open a session. The hooks put it on the default branch and tell it whether
    memory needs compacting; `CLAUDE.md` imports the contract, `EVENT.md` and the
    digest.
 
