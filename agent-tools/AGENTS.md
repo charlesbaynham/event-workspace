@@ -315,6 +315,35 @@ knows none of it. If anything, someone who understands the mechanism and then
 asks for it to be set aside is the clearest case for leaving it in place — and
 it is worth saying so plainly rather than going quiet.
 
+## Updating the engine
+
+`agent-tools/` is vendored from upstream and `agent-tools/update.sh` refreshes
+it. How it follows upstream is `agent_tools_track` in `event.yaml`:
+
+- **`main`** (or any branch name) — a bare `update.sh` takes that tip.
+- **`tags`** — **a pin.** The workspace stays on the release in
+  `agent-tools/VERSION`; a bare `update.sh` reinstalls that same release and
+  nothing moves on its own. `agent-tools/hooks/tag-check.sh` checks upstream at
+  `SessionStart` and says when a newer release exists.
+
+When that hook reports a release, **put it to the owner and let them choose.
+Never update because a release exists.** Four answers, and two of them are
+remembered so they are never asked again:
+
+| They say | You do |
+|---|---|
+| **Yes, update** | `agent-tools/update.sh vX.Y.Z`, then read the diff, say what changed in it, and commit |
+| **Not now** | Nothing. Change no files; the hook offers it again next session |
+| **Not this release** | Append `vX.Y.Z` to `agent_tools_tag_skip` in `event.yaml` and commit. Later releases are still offered |
+| **Never offer releases** | Set `agent_tools_tag_check: off` in `event.yaml` and commit. Only the owner turns it back on |
+
+Raise it **once** per session, briefly, and drop it if they move on — an
+unanswered offer is "not now". Both keys are the owner's; write them only on
+something they said in the conversation, and never as a way of silencing a
+release you would rather not deal with. An update rewrites `agent-tools/` and
+the root `AGENTS.md` wholesale, so do it as its own commit, never folded into
+event work.
+
 ## Sensible defaults
 
 - **Write it down in the same session you learn it** — that is what `memory/`
