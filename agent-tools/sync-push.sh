@@ -23,6 +23,11 @@ ATTEMPTS=5
 . "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 cd "$ROOT" || exit 1
 
+if in_template; then
+  echo "sync-push: no event.yaml — this is the template, not a workspace. Use a branch and a pull request here." >&2
+  exit 1
+fi
+
 CURRENT="$(git symbolic-ref --quiet --short HEAD || echo '(detached)')"
 if [ "$CURRENT" != "$BRANCH" ]; then
   echo "sync-push: on '$CURRENT', not '$BRANCH' — run agent-tools/hooks/git-sync.sh or 'git checkout $BRANCH' first" >&2
