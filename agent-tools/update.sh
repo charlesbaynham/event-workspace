@@ -4,7 +4,7 @@
 # vendored copy. Usage:
 #
 #   agent-tools/update.sh            # latest tag
-#   agent-tools/update.sh v0.2.0     # a specific tag, branch or sha
+#   agent-tools/update.sh v0.2.0     # a specific tag, branch or full sha
 #   agent-tools/update.sh --check    # report the latest tag, change nothing
 #
 # Everything under agent-tools/ is replaced except the paths in KEEP, which are
@@ -17,7 +17,7 @@ set -euo pipefail
 
 . "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 UPSTREAM="$(event_cfg agent_tools_upstream https://github.com/charlesbaynham/event-workspace)"
-KEEP=(skills/gsheets/assets/)
+KEEP=(skills/gsheets/assets)
 DEST="$ROOT/agent-tools"
 
 latest_tag() {
@@ -37,8 +37,17 @@ git -C "$TMP" init --quiet
 git -C "$TMP" fetch --quiet --depth 1 "$UPSTREAM" "$REF"   # a tag, branch or sha alike
 git -C "$TMP" checkout --quiet FETCH_HEAD
 
-EXCLUDES=(); for k in "${KEEP[@]}"; do EXCLUDES+=(--exclude "$k"); done
-rsync -a --delete "${EXCLUDES[@]}" "$TMP/agent-tools/" "$DEST/"
+# No rsync in the cloud containers this runs in, so: set the kept paths aside,
+# replace the directory wholesale, put them back.
+for k in "${KEEP[@]}"; do
+  [ -e "$DEST/$k" ] || continue
+  mkdir -p "$TMP/keep/$(dirname "$k")" && cp -a "$DEST/$k" "$TMP/keep/$k"
+done
+rm -rf "$DEST" && cp -a "$TMP/agent-tools" "$DEST"
+for k in "${KEEP[@]}"; do
+  [ -e "$TMP/keep/$k" ] || continue
+  mkdir -p "$DEST/$(dirname "$k")" && cp -a "$TMP/keep/$k" "$DEST/$k"
+done
 cp "$TMP/AGENTS.md" "$ROOT/AGENTS.md"
 
 echo "update: agent-tools is now $(cat "$DEST/VERSION") ($REF) from $UPSTREAM"
