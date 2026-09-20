@@ -1,6 +1,6 @@
 # event-workspace — spin-out plan
 
-**Status: executed 2026-09-20 (steps 1–3 below); step 4 is the owner's; step 5 is open.** Two questions: *what* comes out of the wedding
+**Status: executed 2026-09-20 (steps 1–4 below); step 5 is open as a job card in ha-workspace.** Two questions: *what* comes out of the wedding
 workspace (and the House Absolute workspace) into a shareable repo, and *how*
 it gets to other people — and back into the wedding workspace so we dogfood it.
 
@@ -241,16 +241,13 @@ event-workspace/
 
 1. ✅ Scrub and generalise `agent-tools/` into this repo (fresh history), with
    `event.yaml` wiring. `agent-tools/VERSION` is 0.1.0; the `v0.1.0` tag
-   exists locally in the authoring session but the session's credentials
-   could not push tags — **the owner pushes the tag** (or creates the release
-   in the UI) and marks the repo a template.
+   is pushed and `main` is the default branch.
 2. ✅ Template `AGENTS.md`/`README.md`; empty `memory/`.
 3. ✅ Wedding repo: `agent-tools/` and `AGENTS.md` vendored by `update.sh`
    at the upstream sha, `event.yaml`/`EVENT.md` carrying everything scrubbed in
    step 1; a routine test fire ran a fresh session against the new layout.
-4. ⏳ Rotate the Sheets service-account key; put the new one in the wedding
-   routine's environment as `GOOGLE_SERVICE_ACCOUNT_KEY`, then delete
-   `agent-tools/skills/gsheets/assets/sa.json` there.
+4. Rotating the Sheets service-account key: the owner decided to leave it in
+   the (private) wedding repo for now; `update.sh` preserves the file.
 5. Later: plugin manifest over `agent-tools/` (B), if wanted.
 
 Two things learned executing it, now baked into `update.sh`: cloud containers
