@@ -82,3 +82,22 @@ hooks run in cloud sessions — but its `CLAUDE.md` is not loaded, whether an
 `enabledPlugins` entry auto-installs in a fresh container is undocumented, and
 git submodule initialisation in cloud sessions is undocumented. That is why
 this engine is a vendored directory with an update script rather than either.
+
+## The send-gate's tools, and where its verdict arrives (Claude Code 2.1.28x)
+
+Tested with headless `claude -p` against probe agents, 27 Sep 2026:
+
+- `tools: []` gives a subagent **no tools**, although the agent listing
+  labels it "(Tools: All tools)". A `tools: []` probe could not read a canary
+  file in auto or default mode. Omitting `tools` is what inherits everything.
+- `disallowedTools: "*"` removes nothing; only `mcp__*` patterns wildcard.
+- Subagents return their final report through `SubagentHandback`, which
+  `tools`/`disallowedTools` can neither remove nor name: `tools:
+  SubagentHandback` resolves to nothing and the agent refuses to launch. It
+  carries the report out and nothing in, so it does not breach the gate's
+  isolation.
+- That hand-back is a tool call and costs a turn. With `maxTurns: 1` the
+  `Agent` result says "stopped at its 1-turn limit… no report" while the
+  verdict arrives intact in the hand-back message, which sessions read as a
+  gate outage and failed closed on every message. `maxTurns: 2` clears it; any
+  other tool call would still exhaust the turns before a verdict.

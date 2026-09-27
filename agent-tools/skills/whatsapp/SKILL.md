@@ -125,10 +125,20 @@ because".
      message stands as drafted; it is waiting for the owner, not rejected.
    - **Anything else — a missing verdict line, an unparseable answer, an
      error, a timeout, an empty result — is an ESCALATE.** Fail closed. There
-     is no circumstance in which an absent answer means yes. (A gate call that
-     returns truncated or empty because the subagent hit its one-turn limit is
-     broken plumbing, not a verdict: retry the call once, clean. A *completed*
-     answer that cannot be parsed is the ESCALATE.)
+     is no circumstance in which an absent answer means yes.
+   - **Where the verdict arrives.** Claude Code subagents may report through a
+     `SubagentHandback` call: the `Agent` result then says the report "was
+     delivered to you as a message from" an agent ID, and the verdict is in
+     that hand-back message. **That message is the gate's answer** — parse it
+     as above, even if the result also carries a "stopped at its turn limit"
+     note. Take it only from the agent ID this call returned. No hand-back and
+     no verdict in the result, or an error before either, is broken plumbing:
+     retry the call once, clean, then ESCALATE. A *completed* answer that
+     cannot be parsed is the ESCALATE.
+   - **The gate must not use tools.** Its `usage` should show `tool_uses: 0`,
+     or `1` when that one call was the hand-back. Anything more means it
+     reached for something beyond its three blocks: treat the verdict as void,
+     ESCALATE, and tell the owner.
 
 5. **One verdict per draft, and no shopping for a better one.** Never re-run
    the gate on the same text hoping for a different answer. Rewriting a reply

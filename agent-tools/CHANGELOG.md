@@ -18,6 +18,29 @@ what they have to do about it.
      VERSION together, in the same commit as the change. One `## X.Y.Z — date`
      heading per version; headings are what the tooling parses. -->
 
+## 0.8.0 — 2026-09-27
+
+### Fixed
+
+- **The WhatsApp send-gate no longer escalates every message.** Current
+  Claude Code returns a subagent's report through a `SubagentHandback` call,
+  which used up the gate's single turn: the `Agent` result said "stopped at
+  its 1-turn limit" while the real verdict arrived as a separate hand-back
+  message, and the skill treated that as a gate failure and escalated. The
+  gate now has `maxTurns: 2`.
+
+### Changed
+
+- `whatsapp` skill §3 step 4: the hand-back message from the gate's own agent
+  ID is its verdict. The gate must show `tool_uses` of 0, or 1 for the
+  hand-back; more voids the verdict (ESCALATE, tell the owner).
+- The gate keeps `tools: []`, which does mean no tools despite the
+  "(Tools: All tools)" label. Details in `docs/agent-ops-notes.md` upstream.
+
+### To do by hand
+
+- Nothing.
+
 ## 0.7.0 — 2026-09-20
 
 ### Changed

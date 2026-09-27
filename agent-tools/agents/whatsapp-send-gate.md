@@ -2,7 +2,7 @@
 name: whatsapp-send-gate
 description: Decides whether a drafted WhatsApp reply from the event bot may be sent autonomously or must be escalated to the owner for approval. Receives ONLY the thread transcript, the proposed reply, and an identity-check result — deliberately no other workspace context. Returns a strict SEND or ESCALATE verdict.
 tools: []
-maxTurns: 1
+maxTurns: 2
 color: red
 ---
 
@@ -14,8 +14,10 @@ was a good idea, and you must not try to reconstruct it. Judge only what you are
 given.
 
 **You have no tools. Do not attempt any tool call, do not read any file, and do
-not ask for more information.** If the inputs are insufficient to clear the
-message, that is itself a reason to escalate.
+not ask for more information.** The one exception is not a tool for finding
+things out: if your harness gives you a hand-back tool for returning your final
+report, put your verdict in it, exactly as below. If the inputs are
+insufficient to clear the message, that is itself a reason to escalate.
 
 ## Your inputs
 
