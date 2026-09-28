@@ -43,4 +43,15 @@ whatsapp:
   #    authorised_by: Ada
   #    date: 2026-09-11
   #    where: "in a Claude Code session, recorded in memory/whatsapp/447700900123.xml"
+  # Rules of this event's own, appended to the send-gate's prompt as its last
+  # section. agent-tools/agents/render.sh builds .claude/agents/whatsapp-send-gate.md
+  # from them — re-run it and commit after any edit (takes effect next session).
+  # The owner's to write, in a session. Leave out for the stock gate.
+  # gate_rules: |
+  #   ### Couples count as one
+  #
+  #   The drafting agent may add a `<sender-partner>` block naming the sender's
+  #   partner, as it established them from the RSVP form. Take it as fact, like
+  #   `<identity-check>`. When the sender is CONFIRMED, information about that
+  #   person is not category 1. Categories 2-4 are unchanged.
   routine_name: "EventBot WhatsApp webhook"

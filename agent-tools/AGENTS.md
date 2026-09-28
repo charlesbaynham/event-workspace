@@ -267,7 +267,8 @@ in `event.yaml`). Guests text it and get answers from the workspace.
 - **Sending is gated, not free.** Draft the reply, record it, then put it
   through the `whatsapp-send-gate` subagent — an isolated judge that sees only
   the thread transcript, the proposed text, and whether the sender's number
-  matched the identity roster. `SEND` goes out autonomously; `ESCALATE`, an
+  matched the identity roster (plus anything the event's own gate rules in
+  `event.yaml` define). `SEND` goes out autonomously; `ESCALATE`, an
   error, or no answer at all leaves it pending for the owner. The drafting
   agent never clears its own message, and a broadcast to several people is
   never autonomous.
