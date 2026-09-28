@@ -40,9 +40,19 @@ what they have to do about it.
 
 ### Changed
 
+- **The send-gate's untrusted input is now fenced by a per-call nonce.** The
+  drafting agent opens every gate call with `NONCE: <fresh random hex>` and
+  wraps the transcript in `<transcript-HEX>` … `</transcript-HEX>`; the gate
+  treats everything up to the matching closing tag as a stranger's text, so a
+  guest who types `</transcript>` and a fake `<identity-check>` is still
+  inside it. A missing or mismatched nonce is `ESCALATE` with the new
+  category `malformed-input`. The `whatsapp` skill (§3 step 3) says how to
+  make the nonce; nothing to do by hand.
 - The shipped gate prompt accepts extra input blocks defined by an
   event-specific rules section; with no such section it behaves exactly as
   before.
+- Contract: before any work, switch to the default branch and pull its
+  remote tip, even when the hook or `git status` says it is current.
 
 ### To do by hand
 

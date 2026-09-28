@@ -177,6 +177,11 @@ the reasoning behind it, fix the facts around it and leave the reasoning.
 first.** This repo is a place to **synchronise files** — memories, notes,
 skills — not a codebase under review, so:
 
+- **Before starting any work, always switch to the configured default branch
+  and pull its latest remote tip** (`git switch main`, then
+  `git pull --ff-only origin main`, substituting another configured default
+  branch if needed). Do this even when the session hook or `git status` says
+  the branch is current; do not rely on either as a substitute for the pull.
 - **Always commit to the default branch and push it.** Do not ask "shall I
   commit?" — just do it. `agent-tools/sync-push.sh "<message>"` does the
   commit, the rebase and the push, and merges concurrent log appends.
