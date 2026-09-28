@@ -18,6 +18,48 @@ what they have to do about it.
      VERSION together, in the same commit as the change. One `## X.Y.Z — date`
      heading per version; headings are what the tooling parses. -->
 
+## 0.9.0 — 2026-09-28
+
+### Added
+
+- **Event-specific send-gate rules.** Write them in `event.yaml` as a block
+  under `whatsapp.gate_rules: |` (commented example in `event.yaml.example`),
+  then run `agent-tools/agents/render.sh` and commit. It builds
+  `.claude/agents/whatsapp-send-gate.md` as the shipped gate prompt plus an
+  "Event-specific rules" section carrying yours verbatim; without
+  `gate_rules` that file stays the usual symlink. Use it to teach the gate a
+  sharing rule of your own (say, partners may see each other's answers)
+  instead of letting the drafting agent override its verdict. The gate reads
+  its prompt at session start, so a change applies from the **next** session.
+- A rule may define an extra input block for the gate; the `whatsapp` skill
+  (§3 step 3) now tells the drafting agent to establish that block's content
+  independently and pass it alongside the usual three.
+- `agent-tools/hooks/gate-check.sh` (SessionStart) reports when the gate
+  Claude Code loaded does not match `event.yaml`. `update.sh` re-renders the
+  gate after every update, and says if the hook is not wired.
+
+### Changed
+
+- **The send-gate's untrusted input is now fenced by a per-call nonce.** The
+  drafting agent opens every gate call with `NONCE: <fresh random hex>` and
+  wraps the transcript in `<transcript-HEX>` … `</transcript-HEX>`; the gate
+  treats everything up to the matching closing tag as a stranger's text, so a
+  guest who types `</transcript>` and a fake `<identity-check>` is still
+  inside it. A missing or mismatched nonce is `ESCALATE` with the new
+  category `malformed-input`. The `whatsapp` skill (§3 step 3) says how to
+  make the nonce; nothing to do by hand.
+- The shipped gate prompt accepts extra input blocks defined by an
+  event-specific rules section; with no such section it behaves exactly as
+  before.
+- Contract: before any work, switch to the default branch and pull its
+  remote tip, even when the hook or `git status` says it is current.
+
+### To do by hand
+
+- Optional: add `agent-tools/hooks/gate-check.sh` beside the other
+  SessionStart hooks in `.claude/settings.json`. Nothing else changes unless
+  you add `gate_rules`.
+
 ## 0.8.0 — 2026-09-27
 
 ### Fixed

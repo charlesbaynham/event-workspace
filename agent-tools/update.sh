@@ -102,6 +102,10 @@ if version_gt "$UP_VERSION" "$INSTALLED"; then
 fi
 echo "update: review with 'git status' and 'git diff', then commit."
 
+# The send-gate agent is built from the shipped prompt plus this event's
+# gate_rules; an update may have changed the shipped half.
+"$DEST/agents/render.sh" || echo "update: could not re-render the send-gate — run agent-tools/agents/render.sh by hand."
+
 # The hook lives in agent-tools/ and so arrives with every update, but the
 # files that RUN it are per-event and were only ever written at birth — a
 # workspace that does not name it has to be told once.
@@ -110,4 +114,9 @@ if ! grep -qs 'version-check\.sh' "$ROOT/.claude/settings.json" "$ROOT/.codex/ho
   echo "update: agent-tools/hooks/version-check.sh at SessionStart, so nothing will tell you"
   echo "update: when upstream has something new. Add it beside the other SessionStart hooks in"
   echo "update: .claude/settings.json (and .codex/hooks.json if you use Codex)."
+fi
+if ! grep -qs 'gate-check\.sh' "$ROOT/.claude/settings.json"; then
+  echo "update: this workspace does not run agent-tools/hooks/gate-check.sh at SessionStart,"
+  echo "update: so nothing reports a send-gate out of step with event.yaml's gate_rules."
+  echo "update: Add it beside the other SessionStart hooks in .claude/settings.json."
 fi

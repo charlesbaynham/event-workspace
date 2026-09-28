@@ -18,6 +18,10 @@
           {
             "type": "command",
             "command": "\"$(git rev-parse --show-toplevel)/agent-tools/hooks/version-check.sh\""
+          },
+          {
+            "type": "command",
+            "command": "\"$(git rev-parse --show-toplevel)/agent-tools/hooks/gate-check.sh\""
           }
         ]
       }
