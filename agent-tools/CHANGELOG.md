@@ -18,6 +18,28 @@ what they have to do about it.
      VERSION together, in the same commit as the change. One `## X.Y.Z — date`
      heading per version; headings are what the tooling parses. -->
 
+## 0.10.0 — 2026-10-04
+
+### Changed
+
+- **`gs.py set` refuses data that does not fit the range it names.** Free
+  text sent with `set '<sheet>' 'Jobs!E43' --csv note.txt` used to be split on
+  every comma and blank line and written as a block from E43, overwriting
+  other rows' cells. `set` now exits 1, before authenticating, when there is
+  more than one value for a single cell, or more rows/columns than an explicit
+  range like `A1:C3` holds. Open-ended ranges (`A:C`, `A1:C`, `2:5`) and tab or
+  named ranges are not limited. Write one cell of free text with
+  `--json '[["..."]]'`. The library's `Sheets.write()` is unchanged.
+- **Breaking:** writing a block from a single anchor cell
+  (`set ... 'Data!A1' --csv table.csv`) now needs the full range or the new
+  `--allow-expand` flag.
+
+### To do by hand
+
+- Any script or note in the workspace that calls `gs.py set` with a single
+  anchor cell for a multi-cell block: give it the full range or add
+  `--allow-expand`.
+
 ## 0.9.0 — 2026-09-28
 
 ### Added

@@ -8,7 +8,8 @@ Usable two ways:
        python gs.py whoami
        python gs.py info <sheet>
        python gs.py get <sheet> 'Data!A1:F200'
-       python gs.py set <sheet> 'Data!A1' --csv new.csv
+       python gs.py set <sheet> 'Data!A1:F50' --csv new.csv
+       python gs.py set <sheet> 'Jobs!E43' --json '[["one cell, commas fine"]]'
        python gs.py append <sheet> 'Log!A:D' --json '[["2026-08-17","run42",1.4,"ok"]]'
 
   2. Library, when you need pandas or anything non-trivial:
@@ -387,6 +388,91 @@ def _rows_from_args(args) -> list[list[Any]]:
     raise ValueError("need --csv or --json to know what to write")
 
 
+class ShapeError(ValueError):
+    """Data would land outside the range the caller named."""
+
+
+_CELL_RE = re.compile(r"^\$?([A-Za-z]{0,3})\$?(\d*)$")  # ZZZ is the widest column
+
+
+def _col_num(letters: str) -> int:
+    n = 0
+    for ch in letters.upper():
+        n = n * 26 + (ord(ch) - 64)
+    return n
+
+
+def _parse_a1(rng: str):
+    """Bounds of an A1 range as (col0, row0, col1, row1); None = open/unknown.
+
+    Returns None outright when the range isn't plain A1 (a bare tab name, a
+    named range), since then nothing can be said about its size.
+    """
+    _, bang, ref = rng.rpartition("!")
+    if not bang:
+        ref = rng
+    parts = ref.strip().split(":")
+    if len(parts) > 2 or not parts[0]:
+        return None
+    cells = []
+    for part in parts:
+        m = _CELL_RE.match(part.strip())
+        if not m or not (m.group(1) or m.group(2)):
+            return None
+        col, row = m.group(1), m.group(2)
+        cells.append((_col_num(col) if col else None, int(row) if row else None))
+    if len(cells) == 1:
+        col, row = cells[0]
+        if col is None or row is None:  # 'A' or '5' alone isn't a cell
+            return None
+        return (col, row, col, row)
+    (c0, r0), (c1, r1) = cells
+    return (c0, r0, c1, r1)
+
+
+def check_write_shape(rng: str, rows: Sequence[Sequence[Any]],
+                      allow_expand: bool = False) -> None:
+    """Refuse a `set` whose data would spill past the range it names.
+
+    The Sheets API treats a single-cell range as an anchor and writes the
+    whole block from there, so free text pushed through --csv (every comma a
+    new column, every blank line a new row) silently overwrites a swathe of
+    neighbouring cells. A single cell therefore takes exactly one value
+    unless allow_expand is set; an explicit multi-cell range must hold the
+    data. Open-ended sides (A:C, A1:C, 2:5) are not limited.
+    """
+    bounds = _parse_a1(rng)
+    if bounds is None:
+        return
+    c0, r0, c1, r1 = bounds
+    height = len(rows)
+    width = max((len(r) for r in rows), default=0)
+    if (c0, r0) == (c1, r1) and None not in (c0, r0):
+        if (height > 1 or width > 1) and not allow_expand:
+            raise ShapeError(
+                f"refusing to write {height} row(s) x {width} column(s) into the "
+                f"single cell {rng!r}: everything past the first value would "
+                "overwrite the cells beside and below it. If this was meant to be one value, it was "
+                "probably free text read through --csv, where every comma starts "
+                "a new column and every line a new row; send it as one cell "
+                "instead: --json '[[\"...\"]]' (or gs.write(sheet, rng, "
+                "[[text]]) from Python). If a block really is intended, name the "
+                "full range (e.g. A1:F50) or pass --allow-expand."
+            )
+        return
+    limits = []
+    if c0 is not None and c1 is not None and width > c1 - c0 + 1:
+        limits.append(f"{width} columns but the range has {c1 - c0 + 1}")
+    if r0 is not None and r1 is not None and height > r1 - r0 + 1:
+        limits.append(f"{height} rows but the range has {r1 - r0 + 1}")
+    if limits:
+        raise ShapeError(
+            f"data does not fit {rng!r}: " + "; ".join(limits)
+            + ". Widen the range, or check the input: free text through --csv "
+            "splits on every comma and newline."
+        )
+
+
 def _print_rows(rows: list[list[Any]], as_csv: bool) -> None:
     if as_csv:
         w = csv.writer(sys.stdout)
@@ -420,6 +506,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     g.add_argument("--csv", help="CSV file to write, or - for stdin")
     g.add_argument("--json", help="JSON list-of-rows, or - for stdin")
     g.add_argument("--raw", action="store_true", help="store verbatim, no parsing")
+    g.add_argument("--allow-expand", action="store_true",
+                   help="let a single-cell range anchor a multi-cell block")
 
     g = sub.add_parser("append", help="add rows below existing data")
     g.add_argument("sheet")
@@ -448,6 +536,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(service_account_email())
             return 0
 
+        if args.cmd == "set":  # checked before auth, so a refusal costs nothing
+            rows = _rows_from_args(args)
+            check_write_shape(args.range, rows, allow_expand=args.allow_expand)
+
         gs = Sheets()
 
         if args.cmd == "info":
@@ -456,7 +548,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             _print_rows(gs.read(args.sheet, args.range, formulas=args.formulas),
                         args.csv_out)
         elif args.cmd == "set":
-            r = gs.write(args.sheet, args.range, _rows_from_args(args), raw=args.raw)
+            r = gs.write(args.sheet, args.range, rows, raw=args.raw)
             print(f"updated {r.get('updatedCells', 0)} cells in {r.get('updatedRange')}")
         elif args.cmd == "append":
             r = gs.append(args.sheet, args.range, _rows_from_args(args), raw=args.raw)

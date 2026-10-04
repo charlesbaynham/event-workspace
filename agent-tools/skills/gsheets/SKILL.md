@@ -103,7 +103,8 @@ result otherwise blows up DataFrame construction.
 ## Writing
 
 ```bash
-python scripts/gs.py set '<sheet>' 'Results!A1' --csv out.csv
+python scripts/gs.py set '<sheet>' 'Results!A1:F50' --csv out.csv
+python scripts/gs.py set '<sheet>' 'Jobs!E43' --json '[["free text, commas and all"]]'
 python scripts/gs.py append '<sheet>' 'Log!A:D' --json '[["2026-08-17","run42",1.4,"ok"]]'
 python scripts/gs.py clear '<sheet>' 'Scratch!A1:Z1000'
 ```
@@ -116,6 +117,13 @@ gs.append("<sheet>", "Log!A:D", [[t, name, value, status]])
 `set` overwrites from the top-left cell of the range and touches nothing beyond the
 data you send — so writing a 3-row block over a 10-row region leaves rows 4–10 as they
 were. When replacing a table that may have shrunk, `clear` the old extent first.
+
+⚠️ **Free text into one cell goes through `--json '[["..."]]'`, never `--csv`.** `--csv`
+splits on every comma and newline, and a single-cell range is only an anchor to the
+API, so a paragraph sent to `E43` used to spread across `E43:U99` over other rows'
+notes. `set` now refuses any write whose data doesn't fit the range it names: one
+value for a single cell (pass `--allow-expand` to anchor a block there deliberately),
+the stated size for `A1:C3`; open sides (`A:C`, `A1:C`) are unlimited.
 
 `append` takes a whole-column range like `'Log!A:D'` and finds the first free row
 itself. That makes it safe against a human editing the sheet at the same time, which
