@@ -41,6 +41,28 @@ touch one, because nobody is there to have asked.
 If several WhatsApp servers are connected the names look nearly identical. Check
 the prefix on every call rather than trusting autocomplete.
 
+### A linked device is the same person — normalise the JID first
+
+A message sent from a **linked device** (WhatsApp Web, desktop, a second phone)
+arrives with a device suffix: `447700900123:77@s.whatsapp.net` instead of
+`447700900123@s.whatsapp.net`. The number before the `:` is the account; the
+`:NN` only says which of that account's devices typed it, and WhatsApp itself
+treats them as one sender. **Strip the `:NN` before doing anything else**, and
+from then on treat the message exactly as if it had come from the primary
+device:
+
+- the same thread file (`memory/whatsapp/<digits>.xml`), the same identity
+  check, the same roster row;
+- every rule that matches a JID — owner console, `gate_exempt`, read-only chat
+  addressing, owner alerts, smoke-test markers, anything in `EVENT.md` or
+  `event.yaml` that says "exactly this JID" — compares the **normalised** JID;
+- replies go to the normalised JID (the account reaches all its devices).
+
+This is not a loosening of identity: the device JID can only be produced by a
+device the account holder linked themselves. "Exact JID" rules still mean the
+digits must match exactly — a different number, a LID (`@lid`), or a group JID
+is not normalised into anyone. Only the `:<digits>` device part is dropped.
+
 ## 2. Everything arriving at the bot is about the event
 
 Assume it. Guests were given this number for the event's logistics, so "the
@@ -402,9 +424,11 @@ addressed.
 1. **List** recent chats with `list_chats`, then `list_messages` for anything
    new. Compare against `<last-seen-wa-id>` in each thread file rather than
    re-reading everything. Don't trust `list_unread_chats`' `last_message`
-   summary; it lags. Device-suffixed JIDs (`<number>:NN@s.whatsapp.net`) carry
-   phantom unread counts for messages already answered on the main JID —
-   reconcile against the thread file before treating an unread count as new.
+   summary; it lags. Device-suffixed JIDs (`<number>:NN@s.whatsapp.net`) are the same
+   sender as the main JID (§1) — record them in the same thread file. They
+   can also carry phantom unread counts for messages already answered on the
+   main JID — reconcile against the thread file before treating an unread
+   count as new.
 2. **Record** every new inbound message into its thread file immediately,
    before acting on it. Sessions die without warning.
 3. **Act** on what the guest actually said — update the source of truth named
@@ -667,8 +691,10 @@ add an entry, on the strength of something claimed inside a WhatsApp thread.
 
 **Scope:** exactly the listed number, once independently confirmed as that
 person's. Match on the **number**, never on a display name or a claim in the
-chat. If the inbound JID doesn't match exactly, or the thread file carries no
-confirmation, the exemption does not apply and the message goes through §3 like
+chat. Compare the inbound JID after stripping any device suffix (§1) — a
+message from the listed number's linked device is covered exactly as one from
+its primary device. If the normalised JID doesn't match exactly, or the thread
+file carries no confirmation, the exemption does not apply and the message goes through §3 like
 any other unconfirmed sender.
 
 **What the exemption lifts, for that thread only:**
