@@ -18,6 +18,19 @@ what they have to do about it.
      VERSION together, in the same commit as the change. One `## X.Y.Z — date`
      heading per version; headings are what the tooling parses. -->
 
+## 0.11.0 — 2026-10-09
+
+### Changed
+
+- **Messages from a linked device are treated as the account's own.** WhatsApp
+  Web, desktop and second phones send as `<number>:NN@s.whatsapp.net`. The
+  whatsapp skill (§1) now strips the `:NN` device suffix before anything else:
+  same thread file, same identity check, and every exact-JID rule (owner
+  console, `gate_exempt`, read-only-chat addressing, owner alerts) compares the
+  normalised JID. Previously an owner writing from WhatsApp Web was refused as
+  an unknown sender. A different number, a LID or a group JID is still never
+  matched to anyone.
+
 ## 0.10.0 — 2026-10-04
 
 ### Changed
