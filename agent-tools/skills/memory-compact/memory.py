@@ -32,7 +32,8 @@ STATE = MEM / "filing-state.md"
 ENTRY = re.compile(r"^- \[\d{4}-\d{2}-\d{2}\]")
 BASELINE = re.compile(r"^<!-- compaction-baseline")
 MAX_ALIASES = 8
-DIGEST_WORDS = 500
+DIGEST_WORDS = 500   # not counting the Tools & resources section
+NOTE_WORDS = 1500
 LOOKBACK_DAYS = 14  # a pass never reaches further back than this
 FIRST_RUN_DAYS = 3  # window when neither the state file nor git history says when the last pass ran
 
@@ -119,7 +120,7 @@ def cmd_check(_args):
     names = {}
     for p in note_files():
         rel = p.relative_to(ROOT).as_posix()
-        meta, _ = frontmatter(p)
+        meta, body = frontmatter(p)
         if meta is None:
             warnings.append(f"{rel}: no frontmatter")
             continue
@@ -133,6 +134,9 @@ def cmd_check(_args):
             if name in names:
                 errors.append(f"{rel}: name '{name}' also used by {names[name]}")
             names[name] = rel
+        words = len(body.split())
+        if words > NOTE_WORDS:
+            warnings.append(f"{rel}: {words} words (spin a subtopic out past {NOTE_WORDS})")
         aliases = meta.get("aliases") or []
         if isinstance(aliases, str):
             errors.append(f"{rel}: aliases must be a [list]")
@@ -145,9 +149,12 @@ def cmd_check(_args):
             if re.match(r"^@\S", line):
                 errors.append(f"{p.relative_to(ROOT).as_posix()}:{n}: '@' import line inside memory/")
     if DIGEST.exists():
-        words = len(re.sub(r"<!--.*?-->", "", DIGEST.read_text(encoding="utf-8"), flags=re.S).split())
+        text = re.sub(r"<!--.*?-->", "", DIGEST.read_text(encoding="utf-8"), flags=re.S)
+        text = re.sub(r"(?ms)^## Tools & resources.*?(?=^## |\Z)", "", text)
+        words = len(text.split())
         if words > DIGEST_WORDS:
-            warnings.append(f"memory/digest.md: {words} words (target {DIGEST_WORDS} or fewer)")
+            warnings.append(f"memory/digest.md: {words} words outside Tools & resources "
+                            f"(target {DIGEST_WORDS} or fewer)")
     for w in warnings:
         print(f"warning: {w}")
     for e in errors:
