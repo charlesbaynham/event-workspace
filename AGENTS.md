@@ -91,13 +91,16 @@ marker, and Charles's to push if he wants one.
 
 ## Memory here
 
-`memory/` here is this repository's own working memory — log template
-decisions and gotchas to `memory/log.md` as they happen, exactly as a
-workspace session would, and compact when the hook says so. It is also the
-seed every workspace starts from: `ONBOARDING.md` resets `log.md`,
-`digest.md` and `user-edits.md` to their empty forms at birth, so nothing
-logged here leaks into an event, and the headings and header comments are
-what a new workspace inherits. Keep those stable.
+`memory/` here is this repository's own working memory. There is no nightly
+filing pass here, so log template decisions and gotchas to `memory/log.md` as
+they happen, and compact by hand when the hook says the log is long: follow
+`agent-tools/skills/memory-compact/filing.md` from the log and git alone, but
+commit on your branch instead of running `sync-push.sh`, which refuses here. It is also the seed every workspace starts from:
+`ONBOARDING.md` resets `log.md`, `digest.md`, `user-edits.md` and
+`filing-state.md` to their empty forms at birth, so nothing logged here leaks
+into an event, and the headings and header comments are what a new workspace
+inherits. Keep those stable; `memory.py` parses the log's entry format, the
+baseline marker and the state file's keys.
 
 ## Checking a change before it ships
 

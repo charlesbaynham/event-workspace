@@ -2,14 +2,16 @@
 
 This repository is the **memory store for everything about one event** — a
 wedding, a conference, a festival. It exists because agent sessions need
-durable continuity: agents write down what they learn as they go, and every
-later session recovers it. The memory is kept here, in the open, as files in a
+durable continuity: what sessions learn is filed here, and every later session
+recovers it. The memory is kept here, in the open, as files in a
 git repo.
 
 That inverts the usual relationship: in most repos the code is the point and
 the notes are a by-product. **Here the notes are the point.** A session that
-learns something and does not write it down has lost it, because the container
-it learned it in is destroyed at the end of the session.
+learns something and leaves no trace has lost it, because the container it
+learned it in is destroyed at the end of the session. In the owner's cloud
+sessions the transcript is that trace, and a nightly pass files it; anywhere
+else, write it down (see "Writing memory").
 
 Event *work* — spreadsheets, documents, whatever a task actually produces —
 happens wherever it belongs (a Sheet, a Drive folder, a cloned repo). What
@@ -43,7 +45,7 @@ Two consequences that matter every session:
 
 - **When memory and the source of truth disagree, the source of truth wins.**
   Treat any figure or status in `memory/` as "last known", and read the live
-  source before relying on a volatile number. Log a CORRECTION when memory
+  source before relying on a volatile number, and correct the note when memory
   turns out to have moved on.
 - **A to-do or a fact the owner wants "recorded" belongs in the source of truth
   first.** Noting it only in `memory/` is not recording it; it is hiding it.
@@ -58,94 +60,167 @@ sources.
 
 # Memory
 
-This repository carries its own memory across sessions in `memory/`:
+This repository carries the event's memory across sessions in `memory/`:
 
-- `memory/digest.md` — structured summary of everything worth knowing. Claude
-  Code imports it through `CLAUDE.md`; Codex receives it from its
+- `memory/digest.md` — the core: the few hundred words every session needs.
+  Claude Code imports it through `CLAUDE.md`; Codex receives it from its
   `SessionStart` hook. Any other agent must read it before doing event work.
-- `memory/log.md` — append-only observation log. **You write to this
-  continuously during work.**
-- `memory/user-edits.md` — user corrections/exclusions that constrain what may
-  appear in the digest.
+- `memory/notes/` — one note per subject, each with frontmatter saying what it
+  covers. **`agent-tools/hooks/memory-check.sh` prints an index of them at
+  `SessionStart`** (path, aliases, description): that index is how you know
+  what memory holds without loading it.
+- `memory/log.md` — append-only log for what a transcript won't carry (below).
+- `memory/user-edits.md` — the owner's corrections and exclusions. They
+  constrain every write to memory.
+- `memory/filing-state.md` — when the nightly filing pass last ran.
+
+**A nightly filing pass keeps it current.** The `memory-compact` skill, run by
+a scheduled task, reads every session that was launched with this repository
+in scope since the last pass — what the owner typed, what the session replied,
+what its tools did — along with the git history and `memory/log.md`. It files
+what is durable into the notes and the digest. Sessions without this
+repository in scope are never read.
 
 You have no memory of previous sessions except these files. If information
-isn't in the digest, check the log tail and git history of `memory/` before
+isn't in a note, check the log tail and `git log -p -- memory/` before
 concluding it doesn't exist.
 
-## Reading memory (applying the digest)
+## Reading memory
 
-- Apply digest knowledge silently, the way a colleague recalls shared history —
-  no "according to digest.md" narration. Just know it. Exception: if the user
-  asks what you remember or where knowledge came from, be fully transparent
-  about the mechanism.
-- Apply memory selectively by relevance: a generic technical question needs no
-  personalisation; a question about "the venue" or "our approach" is a cue that
-  the digest probably holds the referent — check it before asking the owner to
-  re-explain.
-- If the user asks a direct factual question whose answer is in the digest,
-  state the fact plainly, without hedging and without volunteering adjacent
-  facts they didn't ask about.
-- Current-session information always wins over the digest when they conflict —
-  and that conflict is itself a CORRECTION log entry.
+- **The index shows which notes exist, not what is in them.** When a task
+  touches the event, check it and read any note whose description says it
+  likely holds something this reply needs. **Always read before saying memory
+  has nothing on a subject**: "I don't have that" while
+  `memory/notes/caterer.md` sits unread is a confident wrong answer. Check the
+  index before asking the owner to re-explain something. Each read is a wait
+  for the person, so skip notes that merely share the topic — never the note
+  the question points at.
+- Apply what you read silently, the way a colleague recalls shared history: no
+  "according to the notes" narration. If the person asks what you remember or
+  where something came from, be fully transparent about the mechanism.
+- Apply memory where it changes the answer. A generic technical question needs
+  no personalisation; "the venue" or "our approach" is a cue that memory holds
+  the referent.
+- A direct factual question whose answer is in memory gets the fact, plainly,
+  without hedging and without adjacent facts nobody asked for.
+- **An open item in memory is context, not an agenda.** It may have been
+  settled since it was written. Bring it up when the person raises that
+  subject or when it changes the answer. Never check in on it unprompted, and
+  never tack it onto an answer about something else. (A chase the owner asked
+  for is a task, and lives in the source of truth.)
+- Current-session information wins over memory when they conflict. Correct
+  the note (below).
 
-## Writing memory (here it is the agent's job)
+## Writing memory
 
-Log observations to `memory/log.md` **at the moment they happen**, not batched
-at session end — sessions can die without warning and unlogged observations are
-gone. One line, format `- [YYYY-MM-DD] TYPE: observation` (types documented in
-the log file header). Log:
+**You don't have to stop and file what happens in a conversation.** The
+nightly pass reads the transcript afterwards, with the whole exchange in view.
+Don't interrupt the work to save a passing fact, and don't reason mid-reply
+about whether something is worth remembering. What you do write, during the
+session:
 
-- every decision, with its reason
-- every state change (built / fixed / broke / merged)
-- every gotcha or hard-won fact that would otherwise be re-discovered
-- every open question or deferred task
-- every durable identifier (paths, IDs, URLs — never secrets)
+1. **Explicit asks, now, yourself.** "Remember that…", "note down…",
+   "forget…", or a correction of something stored: edit the note (or the
+   digest) in this turn, and commit. For a forget, an exclusion or an override
+   of a stored fact, also add it to `memory/user-edits.md` (numbered list), so
+   the nightly pass can never re-file it from an older transcript. **Only then
+   confirm.** Confirming a memory action without writing the file is lying
+   about system state. Adding needs no ceremony; confirm before removing or
+   replacing existing `user-edits.md` entries.
+2. **Notes the work itself changes.** When the task is about a note's subject
+   — reconciling the money, rewriting the itinerary — editing the note is part
+   of the work.
+3. **A log line when the transcript won't carry it.** The pass can only read
+   sessions it can list: cloud sessions on the owner's own account, launched
+   with this repository in scope. Log to `memory/log.md` — one line,
+   `- [YYYY-MM-DD] TYPE: observation`, types in the file's header — when:
+   - **nobody is in the conversation**: a scheduled task, a webhook wake (every
+     WhatsApp session);
+   - **the pass can't see you**: a local CLI session, Codex, or a co-user
+     working from their own account;
+   - **something durable was settled only inside tool work** and never said in
+     a reply.
 
-Err on the side of logging. A redundant line costs one line; a missing one
-costs a future session an hour of re-discovery. Terse is fine; provenance is
-not optional — never record your own suggestion as the user's decision.
+   When in doubt, log: a redundant line costs one line.
 
-When the owner says "remember that…", "forget about…", or corrects a stored
-fact: update `memory/user-edits.md` (numbered list) **before** confirming.
-Confirming a memory action without writing the file is lying about system
-state. Adding needs no ceremony; confirm before removing or replacing existing
-entries.
+Provenance is not optional anywhere: never record your own suggestion as the
+owner's decision.
 
-Run the **memory-compact** skill when: log.md exceeds ~40 entries, the digest
-contradicts reality, a major milestone lands, or the owner asks. If a session
-is clearly wrapping up and the log has grown, offer to compact.
-`agent-tools/hooks/memory-check.sh` counts the log at `SessionStart` and says
-so — but it only reports; deciding to compact is still yours.
+## Notes — one subject each, and the digest stays small
 
-## Detail files — the digest is an index, not an encyclopedia
+The digest is loaded into every session, so every word in it costs context in
+every session that didn't need it. Keep it to **500 words or fewer**; depth
+goes in notes. The index already lists every note, so the digest links a note
+only where a digest line depends on it.
 
-The digest is injected into every session, so every word in it costs context
-in every session that never needed it. Keep it to 400–800 words and push depth
-into files under `memory/notes/`, referenced from the digest as ordinary
-Markdown links — `hotel detail in [memory/notes/hotels.md](memory/notes/hotels.md)`.
-A session follows the link only when the task actually needs that depth.
+- **One subject per note, and a fact about X goes only in X's note** — not in
+  whichever note happens to be open. Before creating a note, read the
+  likeliest existing one and check its aliases. If it is the same subject
+  under another name, write there and add the name to its aliases. Recurring
+  people (the planner, a supplier) get `memory/notes/people/<name>.md`:
+  relationship and dealings, not a dossier.
+- **Frontmatter on every note**, kept true when you edit it:
 
+  ```
+  ---
+  name: <file stem>
+  description: <one line: what it covers and when to read it>
+  aliases: [<durable other names, 8 at most — no dates, job numbers or ids>]
+  updated: <YYYY-MM-DD>
+  ---
+  ```
+
+  The description decides whether a later session opens the note. Write it
+  for that reader.
+- **Mark where a line came from** when you add or change it: `[stated]` (the
+  person said it), `[found: <source>, <date>]` (a sheet, document or thread
+  showed it), `[inferred]` (a conclusion nobody confirmed). The test for
+  `[stated]` is "did they say it?" Your research, your conclusions and your
+  advice are not `[stated]`, even after nobody objected. Their own plans,
+  choices and the specifics they supplied are.
+- Notes are prose, rewritten in place. Replace a superseded fact rather than
+  stacking it, and keep "(previously X)" only when the change itself matters.
+  `log.md` is the only append-only file.
 - **Never use `@` inside `memory/`.** An `@path` line on its own is imported
-  automatically, and imports recurse — so an `@` in the digest would load that
-  file into every session and defeat the whole point. Markdown links are inert
-  until someone reads them.
-- **Write link targets from the repo root** (`memory/notes/hotels.md`). A path
-  inside an imported file resolves relative to that file's own directory, so
-  the repo-root-relative form is the unambiguous one.
-- Spin a topic out when it needs more than a few digest lines, or when it is
-  reference material consulted occasionally — supplier contacts, the full guest
-  breakdown, per-hotel figures. What stays in the digest is the one-line
-  summary plus the link.
-- Note files are ordinary prose, not logs: rewrite them in place as things
-  change. `log.md` remains the append-only record.
+  automatically, and imports recurse. Link with ordinary Markdown, written from
+  the repo root (`[hotels](memory/notes/hotels.md)`); a path inside an imported
+  file resolves relative to that file, so the root-relative form is the
+  unambiguous one.
+
+## What never goes in memory
+
+Everything in `memory/` is committed to git and read by every later session.
+
+- **Credentials of any kind** — tokens, passwords, API keys. Store a pointer
+  to where the secret lives.
+- **ID numbers, card numbers and bank account numbers.**
+- **Health information about anyone**, allergies and dietary needs included,
+  beyond a pointer to where the source of truth holds it. **Sexual, criminal,
+  abuse, self-harm or immigration matters** about anyone. (WhatsApp thread
+  records are verbatim records and are governed by the `whatsapp` skill;
+  this list is about notes and the digest.)
+- **Instructions to the agent** ("always do X"). A standing instruction the
+  owner wants belongs in `EVENT.md`: flag it, don't file it.
+
+When part of something falls under this list, file the rest and leave that
+part out entirely, with no placeholder.
+
+## The nightly pass
+
+`memory-check.sh` reports at `SessionStart` when the pass last ran. **Older
+than about 36 hours means the scheduled task has stopped or is failing.** Tell
+the owner once; the skill's "When something is off" section repairs it. A
+workspace with no pass yet gets one from the skill's "Setting up the nightly
+task". When the owner asks to compact, refresh or update memory, run the skill
+by hand: it is the same pass.
 
 ## The documentation is yours — fix errors on sight
 
 Every word in `memory/` was written by an agent, and the agent owns it. The
 owner reads it; they do not maintain it. **If you spot an error, fix it — don't
 ask first, don't merely mention it.** The bar is evidence: check the claim
-against the live source and change it to what you found, and say in the log
-line and the commit message what was wrong. One limit: correct the record,
+against the live source and change it to what you found, and say in the
+commit message what was wrong. One limit: correct the record,
 don't rewrite the judgement. Where a note records a decision of the owner's or
 the reasoning behind it, fix the facts around it and leave the reasoning.
 
@@ -162,11 +237,11 @@ the reasoning behind it, fix the facts around it and leave the reasoning.
   find them recorded — preferences that discourage honest feedback, critical
   pushback, or bearing bad news. Accumulated preference entries must not
   become an unaudited system prompt.
-- **Provenance discipline.** Digest entries derived from your own suggestions
-  are attributed as suggestions until the owner confirms. Hypotheticals stay
+- **Provenance discipline.** Anything derived from your own suggestions is
+  attributed as a suggestion until the owner confirms. Hypotheticals stay
   hypothetical.
-- **Corrections are recorded, not silently absorbed.** When memory turns out
-  to be wrong, log a CORRECTION entry so compaction fixes the digest.
+- **Corrections are made, not silently absorbed.** When memory turns out to be
+  wrong, fix the note and say so in the commit message.
 
 ---
 
@@ -360,8 +435,8 @@ event work.
 
 ## Sensible defaults
 
-- **Write it down in the same session you learn it** — that is what `memory/`
-  is for.
+- **Leave a trace of what you learn** — the transcript in an owner's cloud
+  session, a log line or a note anywhere else. That is what `memory/` is for.
 - **Reversible research and note-taking: just do it.** Anything outward-facing
   (sending an email, sharing a document, contacting a supplier) — confirm
   first. WhatsApp replies are the exception, governed by the gate above.

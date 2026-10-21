@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # ---------------------------------------------------------------------------
-# SessionStart hook — report the state of memory/ so compaction is prompted by
-# the repo rather than by a session happening to notice the log has grown.
+# SessionStart hook — put the memory index in front of the session and report
+# whether the nightly filing pass is keeping up.
 #
-# AGENTS.md tells sessions to compact past ~40 entries, but nothing counts the
-# entries, so the trigger only fires if a session thinks to look. This does the
-# looking. It reports, it never edits: compaction is a judgement call and stays
-# the agent's (or the owner's) to make.
+# The index (one line per note in memory/notes/, from each note's frontmatter)
+# is how a session knows what memory holds without loading it: the digest is
+# imported, the notes are read on demand. The pass itself is the memory-compact
+# skill, run nightly by a scheduled task; this hook only reports on it. It
+# never edits anything.
 #
 # Never fails a session — always exits 0.
 # ---------------------------------------------------------------------------
@@ -19,22 +20,56 @@ cd "$ROOT" 2>/dev/null || exit 0
 
 LOG=memory/log.md
 DIGEST=memory/digest.md
+STATE=memory/filing-state.md
+MEMPY=agent-tools/skills/memory-compact/memory.py
 THRESHOLD="${MEMORY_COMPACT_THRESHOLD:-40}"
+STALE_HOURS=36
 
 [ -f "$LOG" ] || { note "no $LOG — memory system not installed here."; exit 0; }
 
-# Count only dated entries, and only those added since the digest was last
-# regenerated — the marker below. Without it the seeded log reads as permanently
-# overdue, and a hook that always cries wolf gets ignored. A real compaction
-# truncates the log and takes the marker with it, so the count resets on its own.
+if command -v python3 >/dev/null 2>&1 && [ -f "$MEMPY" ]; then
+  python3 "$MEMPY" index 2>/dev/null || note "could not build the memory index; list memory/notes/ by hand."
+else
+  note "no python3 — no memory index this session; list memory/notes/ by hand."
+fi
+
+# Entries since the baseline marker are the ones the next pass will file.
 ENTRY_RE='^- \[[0-9]{4}-[0-9]{2}-[0-9]{2}\]'
 BASELINE="$(grep -n '^<!-- compaction-baseline' "$LOG" 2>/dev/null | tail -1 | cut -d: -f1)"
 if [ -n "$BASELINE" ]; then
   ENTRIES="$(tail -n +$((BASELINE + 1)) "$LOG" | grep -cE "$ENTRY_RE" || true)"
-  SCOPE=" since the last digest regeneration"
 else
   ENTRIES="$(grep -cE "$ENTRY_RE" "$LOG" || true)"
-  SCOPE=""
+fi
+
+LAST_RUN="$(sed -nE 's/^last_run:[[:space:]]*([^[:space:]]+).*/\1/p' "$STATE" 2>/dev/null | head -1)"
+if [ -z "$LAST_RUN" ] || [ "$LAST_RUN" = never ]; then
+  # Before the first pass writes the state file: the last compaction commit, if any.
+  LAST_RUN="$(git log -1 --format=%cI -E --grep='^memory: (compact|nightly filing)' 2>/dev/null || true)"
+fi
+AGE_H=""
+if [ -n "$LAST_RUN" ] && [ "$LAST_RUN" != never ]; then
+  then_s="$(date -d "$LAST_RUN" +%s 2>/dev/null || true)"
+  [ -n "$then_s" ] && AGE_H=$(( ($(date +%s) - then_s) / 3600 ))
+fi
+
+if in_template; then
+  # No scheduled task here: the template's own sessions log, and compaction is by hand.
+  note "log.md: $ENTRIES entries since the last compaction (template: compact by hand at about $THRESHOLD)."
+elif [ -n "$AGE_H" ]; then
+  if [ "$AGE_H" -gt "$STALE_HOURS" ]; then
+    note "the nightly memory pass last ran ${AGE_H}h ago ($LAST_RUN) — it may have stopped."
+    note "Tell the owner once; the memory-compact skill's \"When something is off\" repairs it."
+  else
+    note "nightly memory pass last ran ${AGE_H}h ago; $ENTRIES log entries wait for the next."
+  fi
+else
+  note "no nightly memory pass has run here yet; $ENTRIES log entries are waiting."
+  note "If the owner has not set one up, offer once: memory-compact skill, \"Setting up the nightly task\"."
+fi
+
+if ! in_template && [ "$ENTRIES" -ge "$THRESHOLD" ] && { [ -z "$AGE_H" ] || [ "$AGE_H" -gt "$STALE_HOURS" ]; }; then
+  note "$ENTRIES unfiled log entries and no recent pass — run the memory-compact skill now if the owner agrees."
 fi
 
 # Content = anything left once HTML comments, headings, blank lines and the
@@ -50,14 +85,8 @@ digest_is_empty() {
   ' "$DIGEST"
 }
 
-if [ "$ENTRIES" -ge "$THRESHOLD" ]; then
-  note "log.md has $ENTRIES entries$SCOPE (threshold $THRESHOLD) — run the memory-compact skill."
-else
-  note "log.md has $ENTRIES entries$SCOPE (compaction due at $THRESHOLD)."
-fi
-
 if digest_is_empty; then
-  note "digest.md is still empty — no compaction has run yet, so continuity"
+  note "digest.md is still empty — no pass has filed anything yet, so continuity"
   note "for this session comes from the tail of log.md instead."
 fi
 

@@ -1,6 +1,6 @@
 ---
 name: memory-compact
-description: Compact the memory log into its digest when the log grows, reality changes materially, or the user asks to refresh memory.
+description: The memory filing pass — review the sessions launched with this repository in scope, plus git history and memory/log.md, and file what is durable into memory/notes/ and the digest. Run nightly by a scheduled task, or when the owner asks to compact or refresh memory, or to set up or repair that task.
 ---
 
 Read `agent-tools/skills/memory-compact/SKILL.md` completely and follow it.

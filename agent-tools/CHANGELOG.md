@@ -18,6 +18,60 @@ what they have to do about it.
      VERSION together, in the same commit as the change. One `## X.Y.Z — date`
      heading per version; headings are what the tooling parses. -->
 
+## 0.12.0 — 2026-10-21
+
+### Changed
+
+- **Memory is filed by a nightly pass, not by every session as it works.**
+  The `memory-compact` skill is now that pass. A scheduled task starts a
+  session that lists the owner's cloud sessions, keeps **only those launched
+  with this workspace's repository in scope**, and hands each one to a Haiku
+  subagent that reads its transcript and extracts findings tagged by
+  provenance (`[stated]`, `[confirmed]`, `[found: …]`, `[did]`, `[open]`). An
+  Opus subagent then files them, along with git history and the log, into
+  notes and the digest, and commits. The skill's "Setting up the nightly task"
+  creates the task and proves it with one run.
+- **Working sessions log far less.** The contract (`AGENTS.md`, "Writing
+  memory") drops "err on the side of logging". A session in the owner's cloud
+  account no longer stops to file what is said in the conversation. It still
+  acts on explicit "remember / forget / correct" requests in the same turn,
+  and logs only what a transcript won't carry: unattended sessions (scheduled
+  tasks and webhook wakes, so every WhatsApp session logs as before), local
+  CLI, Codex or co-user sessions, and anything settled only inside tool work.
+- **Notes carry frontmatter, and `memory-check.sh` prints an index of them at
+  `SessionStart`**: path, aliases, description. One subject per note; a fact
+  about X goes only in X's note; lines are tagged `[stated]`,
+  `[found: source, date]` or `[inferred]`. The first pass adds frontmatter to
+  existing notes.
+- **The digest's target drops to 500 words or fewer**, since the index now
+  lists every note.
+- **New rules for reading memory:** read before saying memory has nothing on
+  a subject, and treat an open item as context, never an agenda. New
+  "What never goes in memory" list for notes and the digest: credentials; ID,
+  card and account numbers; health information (allergies and dietary needs
+  included) beyond a pointer to the source of truth; sexual, criminal, abuse,
+  self-harm and immigration matters; instructions to the agent.
+- **The log is trimmed by exact line, not truncated.** The pass removes only
+  the entries it filed, so lines other sessions append while it runs survive.
+  This fixes the race where a concurrent merge re-added already-folded entries.
+- New `memory/filing-state.md` records each pass (`last_run`, `last_commit`,
+  and `retry` for sessions whose review failed). `memory-check.sh` warns when
+  the last pass is more than 36 hours old. Before the file exists, it reads
+  the last `memory: compact` commit instead.
+- New `agent-tools/skills/memory-compact/memory.py` (standard library only)
+  does the mechanical parts: index, check, session selection and transcript
+  condensing from saved tool output, log snapshot and trim, and state.
+
+### To do by hand
+
+- **Replace the old compaction task's prompt.** In a session in this workspace,
+  say "set up the nightly memory pass". The skill finds the existing task
+  (`list_triggers`) and updates its prompt in place, keeping its history.
+  Until then the old prompt still runs, but only when the log passes 40
+  entries, and through whichever model it names.
+- Optional: copy the new empty `memory/filing-state.md` from upstream. The
+  first pass writes it if it is missing.
+
 ## 0.11.0 — 2026-10-09
 
 ### Changed

@@ -1,76 +1,144 @@
 ---
 name: memory-compact
-description: Fold memory/log.md into memory/digest.md and truncate the log. Use when the log exceeds ~40 entries, when the digest contradicts current reality, after a major milestone, at the end of a substantial session, or when the user asks to compact/update/refresh memory.
+description: The memory filing pass — read the sessions launched with this event's repository in scope since the last pass, plus git history and memory/log.md, and file what is durable into memory/notes/ and the digest. Run nightly by a scheduled task (a Haiku session selects and dispatches, Haiku subagents review one session each, an Opus subagent files and commits). Also use when the owner asks to compact, refresh or update memory, when memory-check says the pass has stopped, or to set up or repair the nightly task.
 ---
 
-# Memory compaction
+# The memory filing pass
 
-Turn the append-only observation log into a clean structured digest.
-This is a **rewrite**, not an append — the output digest should read as if
-written fresh by someone who knows everything and narrates nothing.
+Working sessions don't stop to file what happens in a conversation; this pass
+does it afterwards, with the whole exchange in view. It reads three things since
+the last pass:
 
-## Procedure
+- **Session transcripts** — every cloud session on the owner's account that was
+  launched with **this repository in scope**. Sessions without it are never
+  read, however related their title looks: the owner runs many unrelated
+  sessions, and none of them belong in this event's memory.
+- **Git history** — covers the sessions the listing cannot show (scheduled
+  tasks, webhook wakes), which commit their work and leave log lines.
+- **`memory/log.md`** — what sessions logged because a transcript would not
+  carry it.
 
-1. **Read all three files**: `memory/digest.md`, `memory/log.md`,
-   `memory/user-edits.md`. If the log is empty or trivial (<5 entries), tell
-   the user compaction isn't needed yet and stop.
+Three roles, and the split is the point: **you select and dispatch** (this
+file), **reviewers** read one session each and extract findings
+([reviewer.md](reviewer.md)), **one filer** decides what is durable, edits the
+notes and the digest, trims the log and commits ([filing.md](filing.md)). Do
+not review or file yourself when you can dispatch — the judgement belongs to
+the filer's model.
 
-2. **Apply user edits first.** Every entry in user-edits.md is a hard
-   constraint:
-   - Factual overrides beat both the old digest and the log.
-   - "Exclude …" entries: the topic must be absent from the new digest, even
-     if log entries mention it. Do not paraphrase excluded content back in.
+`memory.py` (beside this file) does the mechanical parts. Run it from the
+repository root as `python3 agent-tools/skills/memory-compact/memory.py <cmd>`.
 
-3. **Merge log into digest**, section by section:
-   - DECISION / STATE → **Current state** (superseding contradicted claims —
-     delete the old claim, don't stack "previously X, now Y" chains)
-   - OPEN → **On the horizon**; remove horizon items the log shows resolved
-   - LEARNED → **Key learnings & principles**
-   - RESOURCE → **Tools & resources**
-   - CORRECTION → fix the digest wherever the wrong fact lives
-   - Purpose & context changes are rare — only touch that section if the log
-     explicitly shows the project's purpose or cast changed.
+## Running the pass
 
-4. **Compress.** Target 400–800 words total. Recency wins when space is
-   tight: old resolved matters compress to a clause or vanish (git history of
-   `memory/` retains them). Preserve exact identifiers verbatim (fileIds,
-   paths, amounts, dates) — never round or paraphrase those.
+1. **Start clean.** Switch to the default branch in `event.yaml` and
+   `git pull --ff-only`. Make a run directory and keep its path:
+   `RUN=$(mktemp -d)`; `mkdir $RUN/candidates`.
 
-   When a topic will not fit but is too valuable to drop, **spin it out**
-   rather than truncating it: write the detail to `memory/notes/<topic>.md`
-   and leave a one-line summary in the digest with a Markdown link to it
-   (`memory/notes/<topic>.md`, path from the repo root). Never link it with
-   `@` — that imports the file into every session and defeats the point of
-   moving it out. Update an existing note in place instead of creating a
-   second file on the same topic.
+2. **Fix the window.** `memory.py state > $RUN/state.txt`. It prints `since`
+   (read sessions and log entries after this), `last_commit` (read commits
+   after this), `head`, `started`, `repo` (`owner/repo` of this workspace) and
+   `retry` (sessions a failed review left for this pass). Then
+   `memory.py log-snapshot > $RUN/log-snapshot.md` — exactly the log entries
+   this pass will file; lines appended after this moment wait for the next one.
 
-5. **Preserve provenance.** "User decided X" and "suggested X (unconfirmed)"
-   remain distinguishable in the digest. Do not promote suggestions or
-   hypotheticals to decisions during the rewrite — this is the single most
-   common corruption in summarisation.
+3. **Select the sessions.** You need `mcp__claude-code-remote__list_sessions`
+   and `list_events`; load them with ToolSearch
+   (`select:mcp__claude-code-remote__list_sessions,mcp__claude-code-remote__list_events`)
+   if they are deferred. If they do not exist in this session, skip to step 5
+   and say in your report that transcripts were not read.
 
-6. **Truncate the log**: rewrite `memory/log.md` to just its header comment
-   plus a single line:
-   `- [YYYY-MM-DD] STATE: log compacted into digest (N entries folded)`
+   Call `list_sessions` with `mine: true`, `limit: 20`. **A session is in only
+   if one of its `session_context.sources[].git_repository.url` values ends in
+   `/<repo>`** (case-insensitive, `.git` ignored) **and its `updated_at` is
+   after `since`.** Add every id on the `retry:` line whatever its date. Never
+   add your own session.
+   - When the tool saves the result to a file instead of showing it, run
+     `memory.py sessions <file> [<file>…] --since <since>`: it applies the same
+     rule and says whether to page on.
+   - Page with `after_id` = the page's `last_id` while `has_more` is true and
+     the page's oldest `created_at` is within 14 days before `since` (a session
+     can be resumed long after it was created; older than that is not worth
+     the pages).
 
-7. **Sanity-check the diff** of digest.md before finishing:
-   - nothing excluded by user-edits.md survived
-   - no secrets or tokens
-   - no `@` import lines anywhere in `memory/` (Markdown links only)
-   - every note file the digest links to actually exists
-   - no instructions-to-the-agent smuggled in as "learnings" (a learning is
-     a fact about the world; "always do X" is an instruction and belongs in
-     AGENTS.md — surface it to the user instead of storing it)
-   - all five headings present
-   - word count in range
+   Write the result to `$RUN/sessions.tsv`, one line per session: id, title.
+   Zero sessions is a normal night — go on to step 5.
 
-8. **Commit**: `memory: compact log into digest (N entries)` — or fold into
-   the session's work commit if one is imminent. Report a 2–3 line summary of
-   what changed in the digest; don't reproduce the whole file in chat.
+4. **Review each session — Haiku subagents.** For each selected session, call
+   the Agent tool with `subagent_type: "general-purpose"`, `model: "haiku"`,
+   and this prompt, filled in:
 
-## Style of the output digest
+   > Memory review of one session for the event workspace at `<repo root>`.
+   > Read `<repo root>/agent-tools/skills/memory-compact/reviewer.md`
+   > completely and follow it. Session: `<id>` — "`<title>`". Window: events
+   > after `<since>`. Write your findings to `<RUN>/candidates/<id>.md` and
+   > reply with one line: `<id>: <n> findings`.
 
-Prose and terse bullets, no narration ("in a previous session we…" — no; just
-state the fact). Write for a reader with zero context beyond the repo itself.
-Every "On the horizon" item must be actionable without re-reading transcripts:
-include enough context that a fresh session can pick it up cold.
+   Up to five at once, in one message. A review that fails or writes no file
+   gets one more try; after that, add its id to `$RUN/failed.txt` and move on.
+   Failed ids are carried to the next pass, not lost.
+
+5. **File — one Opus subagent.** Call the Agent tool with
+   `subagent_type: "general-purpose"`, `model: "opus"`, and:
+
+   > Memory filing pass for the event workspace at `<repo root>`. Read
+   > `<repo root>/agent-tools/skills/memory-compact/filing.md` completely and
+   > follow it. Run directory: `<RUN>` (state.txt, log-snapshot.md,
+   > sessions.tsv, candidates/, failed.txt if present). End with the report
+   > the procedure asks for.
+
+   If it fails, call it once more with the same prompt. If that fails too,
+   report the failure and stop: the filer is the only step that advances the
+   state, so the next pass simply covers this window as well.
+
+6. **Report.** The filer's report verbatim, then one line of your own:
+   sessions selected, reviews failed, whether transcripts were read at all.
+
+**Without the Agent tool** (Codex, or a session that lacks it), do the steps
+yourself in the same order: reviewer.md once per session, then filing.md.
+**Run by hand** — the owner asked to compact or refresh memory — it is the same
+pass. Make sure anything durable from your own session is already in a note or
+the log first, since your own transcript is not reviewed.
+
+## Setting up the nightly task
+
+Do this from a session **in this workspace's repository**, so the sessions the
+task starts check out this repository. If a compaction task already exists
+(`list_triggers`; older workspaces named it "<event> compaction"), **update it
+in place** with `update_trigger` rather than creating a second one — that keeps
+its run history.
+
+`create_trigger` with:
+
+- `name`: "<short event name> memory filing"
+- `cron_expression`: once a night in the owner's time zone, at a quiet hour,
+  jittered off the hour (`CRON_TZ=<their zone> 27 3 * * *`)
+- `create_new_session_on_fire: true`
+- `notifications`: `{}` unless the owner wants a push each night
+- `initiation`: `human_request`
+- `prompt`:
+
+  > Nightly memory filing for this event workspace. You are a fresh session
+  > with no memory of earlier ones. Switch to the default branch named in
+  > event.yaml and pull, then invoke the `memory-compact` skill and run "Running
+  > the pass" exactly as written: you select sessions and dispatch, Haiku
+  > subagents review, an Opus subagent files and commits. Do nothing else — no
+  > event work, no messages to anyone. End with the filer's report.
+
+The orchestrating session only selects and dispatches, so a small model is
+enough. Once the owner has chosen one, set it with `update_trigger` `model`
+(the current Haiku id, for instance); never change a task's model on your own.
+
+Then **prove it**: `fire_trigger` once and read the fired session
+(`get_session`, `list_events`). Check it found `list_sessions` (if not, the pass
+fell back to git and the log; tell the owner, because transcripts are the main
+input), that it selected only this repository's sessions, and that the filer's
+commit landed on the default branch. Record the trigger id in the note about
+this workspace's tooling (or the log), and tell the owner it is set.
+
+## When something is off
+
+- `memory-check.sh` reports the last pass at SessionStart. Older than about
+  36 hours means the task has stopped or is failing: say so to the owner once,
+  then look at `list_triggers` (its `last_run`) and repair it here.
+- Co-users on their own Claude accounts, local CLI sessions and Codex are
+  invisible to the listing. The contract tells those sessions to keep logging.

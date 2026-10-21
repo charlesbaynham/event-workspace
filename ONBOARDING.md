@@ -117,7 +117,7 @@ answer.
 
 | Feature | Question | Default |
 |---|---|---|
-| **Memory** | — not optional; it is the reason the repository exists | on |
+| **Memory** | — not optional; it is the reason the repository exists. A nightly scheduled task files what sessions learned (set up after birth, §9) | on |
 | **Google Sheets** | Is the source of truth a Sheet you want the agent to read and write in place? Needs a one-off Google Cloud step from you. | on if they named a Sheet in round 1 |
 | **WhatsApp guest bot** | A dedicated number guests text, answered by the workspace, with an isolated send-gate on every reply. Needs a spare phone number and a bridge you host. | later |
 | **Auto-mode rules** | Classifier rules kept in the repo and installed into a cloud environment, so routine work runs unattended. Only meaningful for Claude Code on the web. | on; recommend it, whichever way they open the repository |
@@ -235,12 +235,13 @@ already gitignored; keys live in the agent environment.
 `memory/` currently holds the **template's** own working memory. None of it is
 about this event, and it must not be inherited.
 
-- **Reset the three files to their empty forms**, keeping every heading and
-  header comment exactly as shipped — a later compaction relies on them:
+- **Reset the four files to their empty forms**, keeping every heading and
+  header comment exactly as shipped — the filing pass relies on them:
   `memory/log.md` down to its header comment plus the
   `<!-- compaction-baseline: fresh workspace -->` line; `memory/digest.md` to
   its five headings with `*(empty)*` under each; `memory/user-edits.md` to its
-  header plus `1. *(none yet)*`. Leave `memory/notes/.gitkeep` and
+  header plus `1. *(none yet)*`; `memory/filing-state.md` as shipped
+  (`last_run: never`). Leave `memory/notes/.gitkeep` and
   `memory/whatsapp/AGENTS.md` and `CLAUDE.md` in place; delete any note or
   thread file that is not one of those.
 - **Then log this session**, one line each,
@@ -251,7 +252,7 @@ about this event, and it must not be inherited.
   until they took it.
 - **Fill in the digest's Purpose & context and Tools & resources** from the
   interview — a few lines each, no more. Leave the other three sections for the
-  first real compaction.
+  first filing pass.
 - Never use `@` inside `memory/`. Imports recurse, and one `@` line would load
   the whole tree into every session — Markdown links from the repo root
   instead.
@@ -284,7 +285,8 @@ agent-tools/update.sh --check                # prints installed/upstream VERSION
                                              #  it refused before event.yaml existed
 agent-tools/hooks/git-sync.sh                # "could not fetch origin/main" until step 8 adds
                                              #  origin — expected, and it exits 0
-agent-tools/hooks/memory-check.sh            # a nearly empty log, digest empty: the fresh seed
+agent-tools/hooks/memory-check.sh            # no notes yet, a nearly empty log, "no nightly memory
+                                             #  pass has run here yet", digest empty: the fresh seed
 agent-tools/hooks/automode-check.sh          # silent if auto-mode is off; a drift report is
                                              #  expected until install.sh runs from this repo
 agent-tools/hooks/version-check.sh           # on the pinned track: "pinned to X.Y.Z; nothing
@@ -329,6 +331,11 @@ Tell them what is left, listing only what their answers actually require:
   `docs/agent-ops-notes.md` explains why a repository cannot ship classifier
   rules itself. `install.sh --inline` prints a pasteable block if the setup
   script runs before the clone.
+- **The nightly memory pass** — always: open a session in the new repository
+  and say "set up the nightly memory pass". The `memory-compact` skill creates
+  the scheduled task that files what sessions learn, and proves it with one
+  run. Until it exists, nothing reads the sessions' transcripts. Needs Claude
+  Code on the web.
 - **WhatsApp, now or later**: the prerequisites are in
   `agent-tools/skills/whatsapp/setup.md`. When they have them, open a session in
   the new repository and say "set up the WhatsApp routine"; the skill walks both
