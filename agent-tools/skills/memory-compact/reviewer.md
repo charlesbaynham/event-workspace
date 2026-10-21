@@ -73,6 +73,13 @@ ids, paths.
 
 Leave out:
 
+- **anything the session read out of `memory/`** — notes, the digest, the log,
+  thread records. It is already filed; repeating it as a finding files memory
+  back into itself. The same goes for figures the session merely looked up in
+  the source of truth to answer a question. A session that only looked things
+  up and answered usually has **nothing durable**, and `(nothing durable)` is
+  the right result for it. What counts is what was **new** in the window: what
+  a person said, what changed, what was decided or left open;
 - chat that settles nothing; questions the person only asked; general knowledge;
 - facts that expire on their own: a branch name, where someone is right now,
   "I'm in a taxi";
