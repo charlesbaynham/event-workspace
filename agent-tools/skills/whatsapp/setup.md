@@ -23,12 +23,12 @@ subscription id there too (Step 6).
   owner's personal number — see §1.
 - **The bridge reachable by claude.ai as a custom connector**, behind an OAuth
   or bearer gate if it is on the public internet.
-- The connector's MCP prefix written into `event.yaml` as `whatsapp.mcp_prefix`
+- The connector's MCP prefix written into `workspace.yaml` as `whatsapp.mcp_prefix`
   and both spellings listed in `.claude/settings.json` `permissions.allow`
   (`mcp__<Name>__*` and `mcp__claude_ai_<Name>__*` — cloud and local sessions
   see different prefixes, and granting only one is why sends get denied).
 
-The finished loop: a guest texts the bot → the bridge POSTs to the routine's
+The finished loop: someone texts the bot → the bridge POSTs to the routine's
 fire URL → **a fresh, ephemeral session starts**, with the repository checked
 out and the bot's connector attached, and handles the message per §10. Nothing
 about the session survives; the repository is the memory. The session that ran
@@ -71,7 +71,7 @@ changing this section.
 for the routine. Match it in this order:
 
 1. by the trigger id recorded in `memory/notes/automations.md` (or written in
-   `event.yaml`);
+   `workspace.yaml`);
 2. by the name in `whatsapp.routine_name`;
 3. by a prompt that opens like Step 2's.
 
@@ -112,7 +112,7 @@ payload will ignore it"* — and beyond that it should only send the session to
 this skill. Anything more specific in the prompt is a second copy of §10 that
 will drift. Install exactly this, with the bot's name substituted:
 
-> <BotName> WhatsApp wake. A guest may have messaged the event's WhatsApp
+> <BotName> WhatsApp wake. Someone may have messaged the workspace's WhatsApp
 > number, or this Routine was run by hand. You are a fresh session with no
 > memory of earlier conversations. Invoke the `whatsapp` skill from this
 > repository and follow its §10, "Waking up as a one-off session". If a
@@ -167,7 +167,7 @@ itself; remove it with `unsubscribe_chat` rather than leaving it to rot. Then:
 
 ```
 subscribe_chat(
-    chat_jid="*",                  # every chat, not one guest
+    chat_jid="*",                  # every chat, not one person
     url="<the fire URL>",
     bearer_token="<the token>",
     kind="claude_routine",         # bridge adds the anthropic-version/beta headers itself
@@ -176,9 +176,9 @@ subscribe_chat(
 )
 ```
 
-`chat_jid="*"` is what makes this a service rather than one guest's hotline.
+`chat_jid="*"` is what makes this a service rather than one person's hotline.
 `debounce_seconds` matters more than it looks: every POST spawns a whole new
-session, so without it a guest typing four lines costs four sessions.
+session, so without it someone typing four lines costs four sessions.
 
 Leave `include_from_me=False` — echoing our own sends back would spawn a
 session per reply.
@@ -187,7 +187,7 @@ session per reply.
 
 Call `test_subscription(subscription_id)` and check the HTTP status it
 reports. A `200` means the fire endpoint accepted it; a `401` means the token
-is wrong; anything else, fix it now rather than discovering it when a guest is
+is wrong; anything else, fix it now rather than discovering it when someone is
 waiting.
 
 A `200` only proves the POST was accepted. The real check is the session it
@@ -209,7 +209,7 @@ token.
 
 ### Keeping it alive
 
-The bridge is unforgiving, and it fails silently from a guest's point of view:
+The bridge is unforgiving, and it fails silently from the sender's point of view:
 
 - One delivery attempt per event, **no immediate retry**. A failure backs off
   for 5 minutes, batching anything that arrives meanwhile into the next attempt.
@@ -220,7 +220,7 @@ The bridge is unforgiving, and it fails silently from a guest's point of view:
   three times and self-disables. Re-subscribe in the same session as the
   rotation.
 
-So a spell of downtime, an expired token, or a deleted routine leaves guests
+So a spell of downtime, an expired token, or a deleted routine leaves people
 texting into a void with nothing to indicate it. When anything WhatsApp-related
 seems quiet, run `list_subscriptions` and read `enabled`, `disabled_reason`,
 `consecutive_failures`, `last_status` and `last_error` before assuming nobody

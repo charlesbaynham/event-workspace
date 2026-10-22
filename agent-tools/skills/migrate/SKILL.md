@@ -1,13 +1,15 @@
 ---
 name: migrate
-description: Bring this workspace's stored memory into the structure a new major engine version expects, by running the migration for every major version crossed. Use straight after agent-tools/update.sh moves the engine across a major version (update.sh and the changelog say so), when memory-check or a session finds memory in an older shape than the engine expects, or when the owner asks to migrate.
+description: Bring this workspace's stored memory and its own configuration files (workspace.yaml, WORKSPACE.md, CLAUDE.md) into the shape a new major engine version expects, by running the migration for every major version crossed. Use straight after agent-tools/update.sh moves the engine across a major version (update.sh and the changelog say so), when memory-check or a session finds memory in an older shape than the engine expects, or when the owner asks to migrate.
 ---
 
 # Migrating a workspace across major versions
 
-A **major** engine version changes how memory is stored: file layout, note
-format, the state the tooling reads. The engine can't do that on its own,
-because the memory is this workspace's, not upstream's. So every major ships a
+A **major** engine version changes how memory is stored (file layout, note
+format, the state the tooling reads) or the workspace's own files the engine
+reads (`workspace.yaml`, `WORKSPACE.md`, the imports in `CLAUDE.md` — 1.0.0
+renamed `event.yaml` and `EVENT.md`). The engine can't do that on its own,
+because those files are this workspace's, not upstream's. So every major ships a
 migration, `agent-tools/skills/migrate/<X.0.0>.md`, and an upgrade across it
 isn't finished until the migration has run.
 
@@ -29,8 +31,8 @@ If none apply, say so and stop.
 ## 2. Before the first migration
 
 - **The engine update must be committed already**, as its own commit (the
-  contract's "Updating the engine"). A migration's commits change memory only,
-  never `agent-tools/`.
+  contract's "Updating the engine"). A migration's commits change memory and
+  the workspace's own files, never `agent-tools/`.
 - Be on the default branch, pulled. No uncommitted changes outside what you
   are about to do.
 - Tell the owner in one line which migration(s) you're running and roughly

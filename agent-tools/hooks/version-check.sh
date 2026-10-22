@@ -19,7 +19,7 @@
 #
 # It only reports — updating is the owner's decision, and AGENTS.md ("Updating
 # the engine") carries the four answers they can give. Two are remembered, as
-# top-level keys in event.yaml:
+# top-level keys in workspace.yaml:
 #
 #   agent_tools_version_skip: 0.6.0, abc123def456
 #                                            — already declined: versions on
@@ -38,7 +38,7 @@ cd "$ROOT" 2>/dev/null || exit 0
 
 in_template && exit 0
 TRACK="$(update_track)"
-case "$(event_cfg agent_tools_update_check on)" in
+case "$(ws_cfg agent_tools_update_check on)" in
   off|false|no) exit 0 ;;
 esac
 
@@ -84,7 +84,7 @@ fi
 # list, or whitespace; leading "v"s tolerated. Matched exactly, so declining
 # one version never silences the next, and entries go inert once you are past
 # them — nothing has to prune the list.
-SKIP=" $(event_cfg agent_tools_version_skip "" | tr -d '[]"'"'"'' | tr ',' ' ' | tr -d v) "
+SKIP=" $(ws_cfg agent_tools_version_skip "" | tr -d '[]"'"'"'' | tr ',' ' ' | tr -d v) "
 case "$SKIP" in
   *" $OFFER "*)
     note "$TRACK at $INSTALLED; upstream is $OFFER, which you declined."
@@ -116,7 +116,7 @@ note "Offer it to the owner, changelog and all, and act on their answer —"
 note "AGENTS.md, \"Updating the engine\":"
 note "  update now      → agent-tools/update.sh --accept, review the diff, commit"
 note "  not now         → change nothing; this fires again next session"
-note "  not this one    → add $OFFER to agent_tools_version_skip in event.yaml"
-note "  no more offers  → set agent_tools_update_check: off in event.yaml"
+note "  not this one    → add $OFFER to agent_tools_version_skip in workspace.yaml"
+note "  no more offers  → set agent_tools_update_check: off in workspace.yaml"
 note "Do not update without being asked to, and do not raise it twice in a session."
 exit 0

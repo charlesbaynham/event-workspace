@@ -226,8 +226,10 @@ def since_default():
 
 
 def filer_model():
-    """event.yaml's memory_filer_model (top-level scalar); sonnet unless the owner chose otherwise."""
-    cfg = ROOT / "event.yaml"
+    """workspace.yaml's memory_filer_model (top-level scalar); sonnet unless the owner chose otherwise."""
+    cfg = ROOT / "workspace.yaml"
+    if not cfg.exists():
+        cfg = ROOT / "event.yaml"  # a workspace not yet through the 1.0.0 migration
     if cfg.exists():
         for line in cfg.read_text(encoding="utf-8").splitlines():
             mm = re.match(r"^memory_filer_model:\s*['\"]?([A-Za-z0-9._-]+)", line)
