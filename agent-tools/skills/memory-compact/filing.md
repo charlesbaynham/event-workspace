@@ -103,7 +103,9 @@ creating people notes, tagging `[sensitive]` lines that notes already hold
 untagged, and trimming figures a note merely mirrors from the source of truth all happen
 in the notes whose content you change this pass — at most one or two
 restructures a night, starting with the notes you edit most. A note you only
-gave frontmatter is left as it is.
+gave frontmatter is left as it is — except on a workspace's **first pass**
+(`last_run: never` in `state.txt`), which also tags existing sensitive lines
+`[sensitive]` in every note, keeping them rather than removing them.
 
 **Edit, don't rewrite.** Make the smallest change that leaves the note true.
 Replace a superseded fact rather than adding next to it; keep "(previously X)"

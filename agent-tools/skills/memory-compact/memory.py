@@ -192,7 +192,7 @@ def read_state():
     state = {}
     if STATE.exists():
         for line in STATE.read_text(encoding="utf-8").splitlines():
-            m = re.match(r"^(last_run|last_commit|last_sessions|retry):\s*(\S*)", line)
+            m = re.match(r"^(last_run|last_commit|last_sessions|retry|migrated):\s*(\S*)", line)
             if m:
                 state[m.group(1)] = m.group(2)
     return state
@@ -245,12 +245,13 @@ def cmd_state_set(args):
         return 2
     run, sha, n = args[:3]
     retry = args[3] if len(args) == 4 else ""
+    migrated = read_state().get("migrated", "")  # owned by the migrate skill; carried over
     text = STATE.read_text(encoding="utf-8") if STATE.exists() else (
         "# Memory filing state\n\n<!--\nWritten by the memory-compact skill's filing pass, and by "
         "nothing else.\n-->\n")
     header = text.split("\nlast_run:")[0].rstrip() if "last_run:" in text else text.rstrip()
     STATE.write_text(f"{header}\n\nlast_run: {run}\nlast_commit: {sha}\nlast_sessions: {n}\n"
-                     f"retry: {retry}\n", encoding="utf-8")
+                     f"retry: {retry}\nmigrated: {migrated}\n", encoding="utf-8")
     print(f"filing state: last_run {run}, last_commit {sha[:12]}, {n} session(s)"
           + (f", retry next pass: {retry}" if retry else ""))
     return 0

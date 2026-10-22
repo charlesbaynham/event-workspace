@@ -3,11 +3,13 @@
 Every released version of the engine (`agent-tools/`), newest first. The
 version at the top is what `agent-tools/VERSION` holds.
 
-Semantic versioning: **major** — a consumer has to do something by hand
-(an `event.yaml` key, a moved file, renumbered sections); **minor** — new
+Semantic versioning: **major** — the structure of a workspace's stored memory
+changes (and a migration ships with it, run by the `migrate` skill), or a
+consumer has to do something by hand (an `event.yaml` key, a moved file,
+renumbered sections); **minor** — new
 behaviour you may want to read about, but nothing to do; **patch** — a fix
-with no behaviour change. **Until 1.0.0, breaking changes ride in a minor and
-keep no compatibility shims** — the entry says so, and lists what to edit under
+with no behaviour change. **Before 1.0.0, breaking changes rode in a minor; none
+keep compatibility shims** — the entry says so, and lists what to edit under
 **To do by hand**.
 
 A workspace is shown every entry newer than the version it runs, both by `agent-tools/hooks/version-check.sh` at session start and by
@@ -18,7 +20,22 @@ what they have to do about it.
      VERSION together, in the same commit as the change. One `## X.Y.Z — date`
      heading per version; headings are what the tooling parses. -->
 
-## 0.12.0 — 2026-10-21
+## 1.0.0 — 2026-10-22
+
+**Major: memory is stored differently, and a migration restructures yours.**
+After updating, commit the engine update, then run the `migrate` skill (read
+`agent-tools/skills/migrate/SKILL.md` if it is not listed yet). It gives every
+note frontmatter, tags sensitive lines, shrinks the digest, files the pending
+log, and replaces the nightly compaction task.
+
+### Added
+
+- **The `migrate` skill and the major-version rule.** Every future major ships
+  a migration (`agent-tools/skills/migrate/<X.0.0>.md`); `update.sh` announces
+  it, the contract requires it, and `memory-check.sh` reports memory not yet
+  migrated (`migrated:` in `memory/filing-state.md`).
+- `update.sh` now registers skills that arrived after the workspace was born
+  (`.claude/skills/<name>` symlinks, `.agents/skills/<name>` stubs).
 
 ### Changed
 
@@ -66,13 +83,14 @@ what they have to do about it.
 
 ### To do by hand
 
-- **Replace the old compaction task's prompt.** In a session in this workspace,
-  say "set up the nightly memory pass". The skill finds the existing task
-  (`list_triggers`) and updates its prompt in place, keeping its history.
-  Until then the old prompt still runs, but only when the log passes 40
-  entries, and through whichever model it names.
-- Optional: copy the new empty `memory/filing-state.md` from upstream. The
-  first pass writes it if it is missing.
+- **Run the migration**: commit the engine update, then invoke the `migrate`
+  skill. It does everything below, asking you only which model should run the
+  nightly task:
+  - registers the new skill;
+  - creates `memory/filing-state.md`;
+  - runs the first filing pass (frontmatter on every note, `[sensitive]` tags,
+    a 500-word digest);
+  - updates the old compaction scheduled task in place.
 
 ## 0.11.0 — 2026-10-09
 

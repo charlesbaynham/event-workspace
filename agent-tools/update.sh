@@ -96,11 +96,37 @@ for k in "${KEEP[@]}"; do
 done
 cp "$DEST/AGENTS.md" "$ROOT/AGENTS.md"
 
+# Skills are registered by .claude/skills/<name> symlinks and .agents/skills
+# stubs, which are only written at birth. Register any skill that arrived later.
+for dir in "$DEST"/skills/*/; do
+  name="$(basename "$dir")"
+  [ -f "$dir/SKILL.md" ] || continue
+  if [ -d "$ROOT/.claude/skills" ] && [ ! -e "$ROOT/.claude/skills/$name" ]; then
+    ln -s "../../agent-tools/skills/$name" "$ROOT/.claude/skills/$name"
+    echo "update: registered skill '$name' for Claude Code (.claude/skills/$name)"
+  fi
+  if [ -d "$ROOT/.agents/skills" ] && [ ! -e "$ROOT/.agents/skills/$name/SKILL.md" ]; then
+    mkdir -p "$ROOT/.agents/skills/$name"
+    desc="$(sed -nE 's/^description:[[:space:]]*//p' "$dir/SKILL.md" | head -1)"
+    printf -- '---\nname: %s\ndescription: %s\n---\n\nRead `agent-tools/skills/%s/SKILL.md` completely and follow it.\nResolve all relative resource paths from `agent-tools/skills/%s/`.\n' \
+      "$name" "$desc" "$name" "$name" > "$ROOT/.agents/skills/$name/SKILL.md"
+    echo "update: registered skill '$name' for Codex (.agents/skills/$name)"
+  fi
+done
+
 echo "update: agent-tools is now $UP_VERSION ($REF) from $UPSTREAM"
 if version_gt "$UP_VERSION" "$INSTALLED"; then
   changelog_since "$DEST/CHANGELOG.md" "$INSTALLED"
 fi
 echo "update: review with 'git status' and 'git diff', then commit."
+
+# A new major changes how memory is stored; the upgrade is not finished until
+# its migration has run (AGENTS.md, "Updating the engine").
+if [ "${UP_VERSION%%.*}" -gt "${INSTALLED%%.*}" ] 2>/dev/null; then
+  echo "update: MIGRATION REQUIRED — $INSTALLED → $UP_VERSION crosses a major version."
+  echo "update: Commit this engine update on its own, then invoke the 'migrate' skill"
+  echo "update: (agent-tools/skills/migrate/SKILL.md) to restructure memory/ for it."
+fi
 
 # The send-gate agent is built from the shipped prompt plus this event's
 # gate_rules; an update may have changed the shipped half.

@@ -27,6 +27,19 @@ STALE_HOURS=36
 
 [ -f "$LOG" ] || { note "no $LOG — memory system not installed here."; exit 0; }
 
+# A major engine version changes how memory is stored, and ships a migration.
+# Memory not yet migrated to the engine's major is the first thing to fix.
+if ! in_template; then
+  ENGINE_MAJOR="$(sed -nE 's/^v?([0-9]+)\..*/\1/p' agent-tools/VERSION 2>/dev/null | head -1)"
+  MIGRATED="$(sed -nE 's/^migrated:[[:space:]]*//p' "$STATE" 2>/dev/null | head -1)"
+  DONE_MAJOR="$(printf '%s\n' "$MIGRATED" | tr ', ' '\n\n' | sed -nE 's/^v?([0-9]+)\..*/\1/p' | sort -n | tail -1)"
+  if [ -n "$ENGINE_MAJOR" ] && [ "$ENGINE_MAJOR" -ge 1 ] && [ "${DONE_MAJOR:-0}" -lt "$ENGINE_MAJOR" ]; then
+    note "the engine is ${ENGINE_MAJOR}.x but memory has not been migrated to it (migrated: ${MIGRATED:-none})."
+    note "Tell the owner, and run the migrate skill before other memory work"
+    note "(read agent-tools/skills/migrate/SKILL.md and follow it if the skill is not listed)."
+  fi
+fi
+
 if command -v python3 >/dev/null 2>&1 && [ -f "$MEMPY" ]; then
   python3 "$MEMPY" index 2>/dev/null || note "could not build the memory index; list memory/notes/ by hand."
 else

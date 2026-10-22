@@ -428,10 +428,19 @@ again:
 
 | They say | You do |
 |---|---|
-| **Yes, update** | `agent-tools/update.sh --accept`, then read the diff, say what changed in it, and commit |
+| **Yes, update** | `agent-tools/update.sh --accept`, then read the diff, say what changed in it, and commit. **Across a major version, then run the migration** (below) |
 | **Not now** | Nothing. Change no files; the hook offers it again next session |
 | **Not this one** | Append the id the hook printed (`X.Y.Z` on `pinned`, the 12-character commit on `latest`) to `agent_tools_version_skip` in `event.yaml` and commit. Later ones are still offered |
 | **Never offer updates** | Set `agent_tools_update_check: off` in `event.yaml` and commit. Only the owner turns it back on |
+
+**A major version changes how memory is stored, and the upgrade isn't finished
+until its migration has run.** When the version's first number goes up
+(`update.sh` prints "MIGRATION REQUIRED", the changelog says so, and
+`memory-check.sh` keeps saying so until it's done), commit the engine update
+on its own first. Then invoke the `migrate` skill (or read
+`agent-tools/skills/migrate/SKILL.md` and follow it, if the skill isn't listed
+yet). It restructures `memory/` for the new version and commits that
+separately. Tell the owner before you start: it rewrites their notes.
 
 Raise it **once** per session, briefly, and drop it if they move on — an
 unanswered offer is "not now". Both keys are the owner's; write them only on

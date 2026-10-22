@@ -78,9 +78,24 @@ behaviour, bump `agent-tools/VERSION` and write the `agent-tools/CHANGELOG.md`
 entry in the same commit. **Use the `bump-version` skill**: it carries the
 semver rules, how to read what has changed since the last bump, and what a
 consumer needs from the entry. Changes outside `agent-tools/` reach nobody
-through `update.sh` and need no bump. Until `1.0.0` a breaking change rides in
-a minor and keeps **no** compatibility shim — drop the old key, name or value
-and write the migration under **To do by hand** in the entry.
+through `update.sh` and need no bump.
+
+**A major version means a change to the structure of memory already stored in
+consumer repositories** — note format, file layout, the state the tooling
+reads, anything an existing workspace's `memory/` has to be rewritten to
+match. Every major **ships a migration**,
+`agent-tools/skills/migrate/<X.0.0>.md`, which the `migrate` skill runs. The
+upgrade procedure invokes it: `update.sh` announces it, the shipped contract
+("Updating the engine") requires it, and `memory-check.sh` reports memory not
+yet migrated. A migration must be safe to re-run, must change only `memory/`
+(plus skill registration), and must end by adding its version to
+`migrated:` in `memory/filing-state.md`. Test it on a scratch copy of a real
+consumer before release. Bump the template's own seed `migrated:` line too,
+since a workspace born on a major already has that structure.
+
+Other breaking changes (an `event.yaml` key renamed, a hook moved) are majors
+too from `1.0.0` on, with a **To do by hand** section in the entry. Keep no
+compatibility shims: drop the old key, name or value and say what to edit.
 
 Consumers on `agent_tools_track: pinned` compare the text of
 `agent-tools/VERSION` against upstream's copy at session start, so a bump on
