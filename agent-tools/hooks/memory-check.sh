@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ---------------------------------------------------------------------------
 # SessionStart hook — put the memory index in front of the session and report
-# whether the nightly filing pass is keeping up.
+# whether the filing pass (nightly by default) is keeping up.
 #
 # The index (one line per note in memory/notes/, from each note's frontmatter)
 # is how a session knows what memory holds without loading it: the digest is
@@ -58,7 +58,7 @@ fi
 LAST_RUN="$(sed -nE 's/^last_run:[[:space:]]*([^[:space:]]+).*/\1/p' "$STATE" 2>/dev/null | head -1)"
 if [ -z "$LAST_RUN" ] || [ "$LAST_RUN" = never ]; then
   # Before the first pass writes the state file: the last compaction commit, if any.
-  LAST_RUN="$(git log -1 --format=%cI -E --grep='^memory: (compact|nightly filing)' 2>/dev/null || true)"
+  LAST_RUN="$(git log -1 --format=%cI -E --grep='^memory: (compact|nightly filing|filing pass)' 2>/dev/null || true)"
 fi
 AGE_H=""
 if [ -n "$LAST_RUN" ] && [ "$LAST_RUN" != never ]; then

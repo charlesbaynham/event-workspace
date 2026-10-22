@@ -204,14 +204,16 @@ appended while you worked survive:
 git pull --rebase --autostash -q origin <default branch>
 python3 agent-tools/skills/memory-compact/memory.py trim-log <RUN>/log-snapshot.md
 python3 agent-tools/skills/memory-compact/memory.py state-set <started> <head> <sessions reviewed> <comma-separated ids from failed.txt, if any>
-agent-tools/sync-push.sh "memory: nightly filing (<n> sessions, <m> log entries)"
+agent-tools/sync-push.sh "memory: filing pass (<n> sessions, <m> log entries)"
 ```
 
 `<started>` and `<head>` come from `state.txt`: they are what this pass
 actually covered, so the next one starts there. Log lines appended after the
 snapshot stay below the new baseline marker and are filed next time; the
 marker, not the timestamp, decides which log lines a pass takes. The commit message must start
-`memory: nightly filing` (the next pass looks for it). If `sync-push.sh` fails,
+`memory: filing pass` (the next pass looks for it). If `state-set` refuses
+(exit 3), a later pass has already covered this window: discard your changes
+(`git reset --hard origin/<default branch>`), report that, and stop. If `sync-push.sh` fails,
 report that nothing was recorded. Don't claim a pass that didn't land.
 
 ## 8. Report

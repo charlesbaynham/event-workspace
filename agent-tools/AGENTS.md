@@ -74,8 +74,8 @@ This repository carries the event's memory across sessions in `memory/`:
   constrain every write to memory.
 - `memory/filing-state.md` — when the nightly filing pass last ran.
 
-**A nightly filing pass keeps it current.** The `memory-compact` skill, run by
-a scheduled task, reads every session that was launched with this repository
+**A filing pass keeps it current**, nightly by default or as often as hourly.
+The `memory-compact` skill, run by a scheduled task, reads every session that was launched with this repository
 in scope since the last pass — what the owner typed, what the session replied,
 what its tools did — along with the git history and `memory/log.md`. It files
 what is durable into the notes and the digest. Sessions without this
@@ -229,13 +229,14 @@ it. When the owner asks to compact, refresh or update memory, run the
 
 This workspace relies on work that runs with nobody in the conversation:
 
-- **the nightly memory filing pass**, always;
+- **the memory filing pass**, always: nightly by default, or as often as the
+  owner chose;
 - **the WhatsApp wake**, a routine fired by the bridge's webhook, when
   `event.yaml` configures WhatsApp.
 
 **The `setup` skill registers them, audits them and repairs them**, and walks
-the owner through the steps only they can do (choosing a model, the routine's
-API token in the browser). Its record of ids and schedules is
+the owner through the steps only they can do (the pass's frequency and
+models, the routine's API token in the browser). Its record of ids and schedules is
 `memory/notes/automations.md`. Run it:
 
 - once a workspace is born;

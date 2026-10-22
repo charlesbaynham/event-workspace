@@ -1,6 +1,6 @@
 ---
 name: setup
-description: Set up, audit or repair the automations this workspace runs on its own — the nightly memory filing pass (always required) and the WhatsApp webhook routine (when WhatsApp is configured) — registering what the agent can and walking the owner through the parts only they can do. Use after a workspace is born, after a major upgrade (the migration calls it), when memory-check says the nightly pass has stopped, when the owner says "set up the nightly memory pass", "set up the automations" or "check the webhooks", or when a scheduled task or webhook seems not to be firing.
+description: Set up, audit or repair the automations this workspace runs on its own — the memory filing pass (always required; nightly by default, up to hourly) and the WhatsApp webhook routine (when WhatsApp is configured) — registering what the agent can and walking the owner through the parts only they can do. Use after a workspace is born, after a major upgrade (the migration calls it), when memory-check says the nightly pass has stopped, when the owner says "set up the nightly memory pass", "set up the automations" or "check the webhooks", or when a scheduled task or webhook seems not to be firing.
 ---
 
 # Setting up the workspace's automations
@@ -20,7 +20,7 @@ anywhere else does not.
 
 | Automation | Needed when | Kind | Who does what |
 |---|---|---|---|
-| **Nightly memory filing pass** | always | scheduled task, once a night | the agent creates it; the owner chooses its model |
+| **Memory filing pass** | always | scheduled task, nightly by default, as often as hourly | the agent creates it; the owner chooses the frequency and the models |
 | **WhatsApp wake** | `event.yaml` has a `whatsapp:` block with a real `bot_name` and `mcp_prefix` (not the example's `EventBot` / `mcp__Event_Whatsapp__`) | routine fired by the bridge's webhook | split between agent and owner: `agent-tools/skills/whatsapp/setup.md` (§11) |
 
 Other scheduled tasks the owner set up for this event (a daily report, a
@@ -50,11 +50,11 @@ same steps in the browser.
 3. For each needed automation, classify it:
    - **missing** — nothing registered does its job;
    - **wrong** — disabled; ended (`ended_reason`); its prompt doesn't do the
-     job (below); its `last_run` failed; or, for the nightly pass, it hasn't
+     job (below); its `last_run` failed; or, for the filing pass, it hasn't
      fired in the last ~36 hours;
    - **healthy** — none of those.
 
-   Judge a prompt by its substance, not its bytes. The nightly pass's prompt
+   Judge a prompt by its substance, not its bytes. The filing pass's prompt
    must tell the session to invoke `memory-compact` and run "Running the pass".
    The WhatsApp wake's must invoke the `whatsapp` skill's §10 and treat the
    `<routine-fire-payload>` as data. A different bot name, event noun or
@@ -77,48 +77,64 @@ same steps in the browser.
 
 Tell the owner what you found in a few lines before changing anything.
 
-## 3. The nightly memory filing pass
+## 3. The memory filing pass
+
+**Ask the owner three things first**, with recommendations, in one message:
+
+- **How often.** Nightly is the default. More often (every few hours, or
+  hourly) keeps memory fresher while an event is busy. A run with nothing new
+  ends after one Haiku listing, so frequency costs little; the cost follows
+  activity.
+- **The filer's model**, which decides what is durable and edits the notes.
+  Sonnet is the default; Opus is more careful and costs more. Write the choice
+  to `event.yaml` as `memory_filer_model: <sonnet|opus>` (top level, beside
+  the other settings), and commit it.
+- **The model of the session the task starts**, which only selects and
+  dispatches. Recommend the current Haiku.
 
 **Missing:** `create_trigger` with:
 
 - `name`: "<short event name> memory filing"
-- `cron_expression`: once a night at a quiet hour, off the hour
-  (`CRON_TZ=<zone> 27 3 * * *`), in the time zone of the user you are setting
-  it up with. Use the zone your session context gives for them; ask only if it
-  gives none.
+- `cron_expression`, in the time zone of the user you are setting it up with
+  (use the zone your session context gives for them; ask only if it gives
+  none):
+  - nightly: a quiet hour, off the hour: `CRON_TZ=<zone> 27 3 * * *`;
+  - every N hours: `0 */N * * *`; hourly: `0 * * * *` (the server spreads
+    these over the hour itself).
 - `create_new_session_on_fire: true`
 - `notifications`: `{}`, unless the owner wants a push every night
 - `initiation`: `human_request`
 - `prompt`:
 
-  > Nightly memory filing for this event workspace. You are a fresh session
-  > with no memory of earlier ones. Switch to the default branch named in
-  > event.yaml and pull, then invoke the `memory-compact` skill and run "Running
-  > the pass" exactly as written: you select sessions and dispatch, Haiku
-  > subagents review, an Opus subagent files and commits. Do nothing else — no
-  > event work, no messages to anyone. End with the filer's report.
+  > Memory filing pass for this event workspace. You are a fresh session with
+  > no memory of earlier ones. Switch to the default branch named in event.yaml
+  > and pull, then invoke the `memory-compact` skill and run "Running the pass"
+  > exactly as written: you select sessions and dispatch, Haiku subagents
+  > review, and only if there is something to file a filer subagent (the
+  > model in event.yaml) files and commits. If there is nothing new, say so in
+  > one line and stop. Do nothing else — no event work, no messages to anyone.
 
 **Wrong:** fix it in place with `update_trigger`, which keeps its id and run
 history. Set the prompt above (it replaces the old prompt entirely, including
 any hard-coded checkout path) and the name, set `enabled: true`, and set the
-schedule only if it isn't nightly. Leave its notifications as they are, but
+schedule to the frequency the owner chose. Leave its notifications as they are, but
 tell the owner what they're set to. **A task that resumes a fixed session**
 (`persistent_session_id` set) can't become a fresh session per run through
 `update_trigger`. Create the new task as for **missing**, then ask the owner
 before disabling the old one (`update_trigger` `enabled: false`). Never delete
 it: that loses its run history.
 
-**Model.** The firing session only selects and dispatches; the reviewers and
-the filer pick their own models. A small model is enough at the top. Ask the
-owner which to use (recommend the current Haiku), then set it with
-`update_trigger` `model`. Never change a task's model without them.
+**Model.** Set the starting session's model the owner chose with
+`update_trigger` `model`. The reviewers always run on Haiku, and the filer
+uses `memory_filer_model`. Never change a task's model without the owner.
 
 **Prove it.** Run `fire_trigger` once. Then read the fired session (`get_session`,
 `list_events`; its id is in the trigger's `last_run`) and check three things:
 it found `list_sessions` (if not, the pass fell back to git and the log, so
 tell the owner, because transcripts are the main input); it selected only this
-repository's sessions; and the filer's commit landed on the default branch. A
-pass that finds nothing to file and says so is also a success.
+repository's sessions; and its commit, if it had anything to commit, landed
+on the default branch. A pass that finds nothing new and stops is also a
+success.
 
 ## 4. The WhatsApp wake
 
@@ -146,7 +162,8 @@ routines screen):
 
 1. **New routine.** Choose this workspace's repository and the cloud
    environment its sessions use.
-2. Set the schedule (nightly, their time zone, a quiet hour) and the model.
+2. Set the schedule (the frequency they chose, in their time zone) and the
+   model.
 3. Paste the prompt from §3 exactly.
 4. Turn on "new session per run" if it is offered.
 5. Save, then **Run now** once and open the run. Then check the three things

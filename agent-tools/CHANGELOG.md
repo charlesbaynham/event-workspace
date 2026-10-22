@@ -50,9 +50,12 @@ log, and replaces the nightly compaction task through the new `setup` skill.
   session that lists the owner's cloud sessions, keeps **only those launched
   with this workspace's repository in scope**, and hands each one to a Haiku
   subagent that reads its transcript and extracts findings tagged by
-  provenance (`[stated]`, `[confirmed]`, `[found: …]`, `[did]`, `[open]`). An
-  Opus subagent then files them, along with git history and the log, into
-  notes and the digest, and commits. The `setup` skill creates the task and
+  provenance (`[stated]`, `[confirmed]`, `[found: …]`, `[did]`, `[open]`).
+  Only when there is something durable, a filer subagent then files them,
+  along with git history and the log, into notes and the digest, and commits.
+  The filer runs on Sonnet unless `event.yaml` sets `memory_filer_model:
+  opus`. A run with nothing new stops after one Haiku listing, so the pass can
+  run hourly; `setup` asks how often and which models. The `setup` skill creates the task and
   proves it with one run.
 - **Working sessions log far less.** The contract (`AGENTS.md`, "Writing
   memory") drops "err on the side of logging". A session in the owner's cloud

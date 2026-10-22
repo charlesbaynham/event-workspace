@@ -6,6 +6,7 @@
     memory.py repo                  owner/repo of this workspace (from origin)
     memory.py state                 since / last_commit for the next filing pass
     memory.py state-set RUN SHA N   record a finished pass
+    memory.py work RUNDIR           is there anything for the filer? (exit 0 yes, 1 no)
     memory.py log-snapshot          log entries since the baseline marker (what a pass files)
     memory.py trim-log SNAPSHOT     remove exactly those entries from memory/log.md
     memory.py sessions FILE... --since ISO
@@ -209,7 +210,7 @@ def since_default():
     baseline marker (digest.md is edited in passing, so its date proves nothing). Never more
     than LOOKBACK_DAYS ago."""
     floor = datetime.now(timezone.utc) - timedelta(days=LOOKBACK_DAYS)
-    found = (git("log", "-1", "--format=%H %cI", "-E", "--grep=^memory: (compact|nightly filing)").split()
+    found = (git("log", "-1", "--format=%H %cI", "-E", "--grep=^memory: (compact|nightly filing|filing pass)").split()
              or git("log", "-1", "--format=%H %cI", "-G", "compaction-baseline", "--", "memory/log.md").split())
     shallow = Path(git("rev-parse", "--git-path", "shallow"))
     if not shallow.is_absolute():
@@ -222,6 +223,17 @@ def since_default():
             return t.strftime("%Y-%m-%dT%H:%M:%SZ")
     fallback = datetime.now(timezone.utc) - timedelta(days=FIRST_RUN_DAYS)
     return max(fallback, floor).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def filer_model():
+    """event.yaml's memory_filer_model (top-level scalar); sonnet unless the owner chose otherwise."""
+    cfg = ROOT / "event.yaml"
+    if cfg.exists():
+        for line in cfg.read_text(encoding="utf-8").splitlines():
+            mm = re.match(r"^memory_filer_model:\s*['\"]?([A-Za-z0-9._-]+)", line)
+            if mm:
+                return mm.group(1)
+    return "sonnet"
 
 
 def cmd_state(_args):
@@ -239,6 +251,7 @@ def cmd_state(_args):
     print(f"last_commit: {commit}")
     print(f"head: {git('rev-parse', 'HEAD')}")
     print(f"retry: {st.get('retry', '')}")
+    print(f"filer_model: {filer_model()}")
     print(f"repo: {repo_slug()}")
     print(f"started: {now_iso()}")
     return 0
@@ -251,6 +264,12 @@ def cmd_state_set(args):
         return 2
     run, sha, n = args[:3]
     retry = args[3] if len(args) == 4 else ""
+    prev = read_state().get("last_run", "never")
+    if prev not in ("", "never") and parse_iso(prev) >= parse_iso(run):
+        # Passes can run as often as hourly; one that overran must not wind the state back.
+        print(f"state-set: a later pass already recorded last_run {prev}; not recording {run}. "
+              "Discard this pass's changes.", file=sys.stderr)
+        return 3
     migrated = read_state().get("migrated", "")  # owned by the migrate skill; carried over
     text = STATE.read_text(encoding="utf-8") if STATE.exists() else (
         "# Memory filing state\n\n<!--\nWritten by the memory-compact skill's filing pass, and by "
@@ -376,6 +395,24 @@ def cmd_sessions(args):
     return 0
 
 
+def cmd_work(args):
+    """Anything for the filer? Findings in candidates/, or log entries in the snapshot."""
+    if len(args) != 1:
+        print("usage: memory.py work <run dir>", file=sys.stderr)
+        return 2
+    run = Path(args[0])
+    findings = 0
+    for c in sorted((run / "candidates").glob("*.md")):
+        findings += sum(1 for l in c.read_text(encoding="utf-8").splitlines()
+                        if re.match(r"^- \[", l))
+    snap = run / "log-snapshot.md"
+    entries = sum(1 for l in snap.read_text(encoding="utf-8").splitlines() if ENTRY.match(l)) \
+        if snap.exists() else 0
+    print(f"findings: {findings}; log entries: {entries}")
+    print("file: yes" if findings or entries else "file: no — nothing durable; advance the state only")
+    return 0 if findings or entries else 1
+
+
 def text_of(content):
     if isinstance(content, str):
         return content
@@ -454,7 +491,7 @@ def cmd_transcript(args):
 COMMANDS = {
     "index": cmd_index, "check": cmd_check, "repo": cmd_repo, "state": cmd_state,
     "state-set": cmd_state_set, "log-snapshot": cmd_log_snapshot, "trim-log": cmd_trim_log,
-    "sessions": cmd_sessions, "transcript": cmd_transcript,
+    "sessions": cmd_sessions, "transcript": cmd_transcript, "work": cmd_work,
 }
 
 if __name__ == "__main__":

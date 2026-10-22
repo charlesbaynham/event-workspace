@@ -1,6 +1,6 @@
 ---
 name: memory-compact
-description: The memory filing pass — read the sessions launched with this event's repository in scope since the last pass, plus git history and memory/log.md, and file what is durable into memory/notes/ and the digest. Run nightly by a scheduled task (a Haiku session selects and dispatches, Haiku subagents review one session each, an Opus subagent files and commits). Also use when the owner asks to compact, refresh or update memory. (Creating or repairing the nightly task is the setup skill's job.)
+description: The memory filing pass — read the sessions launched with this event's repository in scope since the last pass, plus git history and memory/log.md, and file what is durable into memory/notes/ and the digest. Run by a scheduled task, nightly or as often as hourly (a Haiku session selects and dispatches, Haiku subagents review one session each, and only when there is something durable a filer subagent — Sonnet by default — files and commits). Also use when the owner asks to compact, refresh or update memory. (Creating or repairing the nightly task is the setup skill's job.)
 ---
 
 # The memory filing pass
@@ -25,6 +25,11 @@ notes and the digest, trims the log and commits ([filing.md](filing.md)). Do
 not review or file yourself when you can dispatch — the judgement belongs to
 the filer's model.
 
+**Cost scales with work, not with how often it runs.** A pass with nothing new
+is one Haiku session reading a page of the session list. Reviewers start only
+for sessions with activity in the window, and the filer only when they or the
+log produced something.
+
 `memory.py` (beside this file) does the mechanical parts. Run it from the
 repository root as `python3 agent-tools/skills/memory-compact/memory.py <cmd>`.
 
@@ -36,8 +41,9 @@ repository root as `python3 agent-tools/skills/memory-compact/memory.py <cmd>`.
 
 2. **Fix the window.** `memory.py state > $RUN/state.txt`. It prints `since`
    (read sessions and log entries after this), `last_commit` (read commits
-   after this), `head`, `started`, `repo` (`owner/repo` of this workspace) and
-   `retry` (sessions a failed review left for this pass). Then
+   after this), `head`, `started`, `repo` (`owner/repo` of this workspace),
+   `retry` (sessions a failed review left for this pass) and `filer_model`
+   (from `event.yaml`, Sonnet by default). Then
    `memory.py log-snapshot > $RUN/log-snapshot.md` — exactly the log entries
    this pass will file; lines appended after this moment wait for the next one.
 
@@ -61,7 +67,11 @@ repository root as `python3 agent-tools/skills/memory-compact/memory.py <cmd>`.
      the pages).
 
    Write the result to `$RUN/sessions.tsv`, one line per session: id, title.
-   Zero sessions is a normal night — go on to step 5.
+
+   **Nothing new — stop here.** No sessions selected, nothing on `retry:`, and
+   `log-snapshot.md` empty: report "nothing new since <since>" in one line and
+   end. Commit nothing. The pass can run as often as hourly, and most runs end
+   here, so this is the cheap path: no subagents, no commit.
 
 4. **Review each session — Haiku subagents.** For each selected session, call
    the Agent tool with `subagent_type: "general-purpose"`, `model: "haiku"`,
@@ -79,8 +89,18 @@ repository root as `python3 agent-tools/skills/memory-compact/memory.py <cmd>`.
    `failed.txt`**: the window moves on after this pass, so a session left out
    of both is never read. Failed ids are carried to the next pass.
 
-5. **File — one Opus subagent.** Call the Agent tool with
-   `subagent_type: "general-purpose"`, `model: "opus"`, and:
+5. **Only file when there is something to file.** Run `memory.py work $RUN`.
+
+   - **`file: no`** — the reviewers found nothing durable and the log is
+     empty. Don't start the filer. Advance the state, so the same windows aren't
+     reviewed again next run:
+     `memory.py state-set <started> <head> <sessions reviewed> <ids from failed.txt>`,
+     then `agent-tools/sync-push.sh "memory: filing pass (nothing to file, <n> sessions)"`.
+     `state-set` exiting 3 means a later pass already covered this; commit
+     nothing. Then report and end.
+   - **`file: yes`** — start one filer subagent. Call the Agent tool with
+     `subagent_type: "general-purpose"`, `model:` the `filer_model` from
+     `state.txt`, and:
 
    > Memory filing pass for the event workspace at `<repo root>`. Read
    > `<repo root>/agent-tools/skills/memory-compact/filing.md` completely and
@@ -89,11 +109,12 @@ repository root as `python3 agent-tools/skills/memory-compact/memory.py <cmd>`.
    > the procedure asks for.
 
    If it fails, call it once more with the same prompt. If that fails too,
-   report the failure and stop: the filer is the only step that advances the
-   state, so the next pass simply covers this window as well.
+   report the failure and stop. Nothing advances the state then, so the next
+   pass simply covers this window as well.
 
-6. **Report.** The filer's report verbatim, then one line of your own:
-   sessions selected, reviews failed, whether transcripts were read at all.
+6. **Report.** The filer's report verbatim (if it ran), then one line of your
+   own: sessions selected, reviews failed, whether the filer ran, whether
+   transcripts were read at all.
 
 **Without the Agent tool** (Codex, or a session that lacks it), do the steps
 yourself in the same order: reviewer.md once per session, then filing.md.
