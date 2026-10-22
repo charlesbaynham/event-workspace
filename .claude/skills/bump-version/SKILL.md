@@ -34,7 +34,7 @@ Semantic versioning, read from the consumer's side:
 
 | Bump | When | Examples |
 |---|---|---|
-| **major** | the structure of memory already stored in consumers changes, **or** a consumer has to do something by hand, or something they rely on is gone | a new note format or memory layout (**needs a migration**, below), an `workspace.yaml` key renamed with no fallback, a file they registered themselves moved, a skill's section numbers renumbered (`AGENTS.md` cites them) |
+| **major** | the structure of memory already stored in consumers changes, **or** a consumer has to do something by hand, or something they rely on is gone | a new note format or memory layout (**needs a migration**, below), a `workspace.yaml` key renamed with no fallback, a file they registered themselves moved, a skill's section numbers renumbered (`AGENTS.md` cites them) |
 | **minor** | new or changed behaviour that lands cleanly | a new hook or skill, a new `update.sh` mode, wording in the shipped contract that changes what a session does |
 | **patch** | a fix with no behaviour change | a hook crashing on an empty file, a typo in the contract, a tightened regex |
 

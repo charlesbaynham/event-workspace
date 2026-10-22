@@ -99,7 +99,7 @@ yet migrated. A migration must be safe to re-run, must change only `memory/`
 consumer before release. Bump the template's own seed `migrated:` line too,
 since a workspace born on a major already has that structure.
 
-Other breaking changes (an `workspace.yaml` key renamed, a hook moved) are majors
+Other breaking changes (a `workspace.yaml` key renamed, a hook moved) are majors
 too from `1.0.0` on, with a **To do by hand** section in the entry. Keep no
 compatibility shims: drop the old key, name or value and say what to edit.
 
@@ -131,7 +131,7 @@ baseline marker and the state file's keys.
 - Read the shipped contract as its reader would: a session with no memory of
   this conversation and no idea the template exists.
 - The real test is a consumer. In a scratch directory, clone this repository
-  at your branch, put it through `ONBOARDING.md`, or drop an `workspace.yaml` in
+  at your branch, put it through `ONBOARDING.md`, or drop a `workspace.yaml` in
   and run `agent-tools/update.sh <branch>`, and read the `git diff` it leaves.
 
 Design history in [docs/spin-out-plan.md](docs/spin-out-plan.md); what running

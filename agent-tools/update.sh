@@ -125,7 +125,7 @@ echo "update: review with 'git status' and 'git diff', then commit."
 if [ "${UP_VERSION%%.*}" -gt "${INSTALLED%%.*}" ] 2>/dev/null; then
   echo "update: MIGRATION REQUIRED — $INSTALLED → $UP_VERSION crosses a major version."
   echo "update: Commit this engine update on its own, then invoke the 'migrate' skill"
-  echo "update: (agent-tools/skills/migrate/SKILL.md) to restructure memory/ for it."
+  echo "update: (agent-tools/skills/migrate/SKILL.md) to bring memory/ and the workspace files up to it."
 fi
 
 # The send-gate agent is built from the shipped prompt plus this workspace's
