@@ -68,7 +68,15 @@ changing this section.
 ### Step 1 — the agent finds or creates the routine (tools, our half)
 
 **Look before creating.** Run `mcp__Claude_Code_Remote__list_triggers` and look
-for a routine named as `whatsapp.routine_name` in `event.yaml`. If it exists,
+for the routine. Match it in this order:
+
+1. by the trigger id recorded in `memory/notes/automations.md` (or written in
+   `event.yaml`);
+2. by the name in `whatsapp.routine_name`;
+3. by a prompt that opens like Step 2's.
+
+If you matched on anything but the id, tell the owner, and offer to align
+`routine_name` with the trigger's actual name. If it exists,
 this step is done: compare its prompt with Step 2 and, only if they differ,
 bring it back into line with `update_trigger(prompt=…)`; check `enabled` and
 say so if it is off. Do not create a second one and do not delete it — its API
@@ -94,7 +102,7 @@ The result may print a "stores no MCP connectors" warning. **For this routine
 shape the warning is real**: the sessions it spawns get nothing that is not
 attached in the UI. Step 3 fixes that; do not skip it.
 
-Record the returned `trigger.id` (`trig_…`) in `memory/log.md`.
+Record the returned `trigger.id` (`trig_…`) in `memory/notes/automations.md`.
 
 ### Step 2 — the routine prompt
 
