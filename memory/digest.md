@@ -1,9 +1,10 @@
 # Memory digest
 
 <!--
-Rewritten wholesale by the memory-compact skill from memory/log.md. Imported
-into every session, so keep it to 400–800 words and push depth into
-memory/notes/<topic>.md, linked with ordinary Markdown links (never `@`).
+Rewritten by the memory-compact skill's filing pass. Imported into every
+session, so keep it to 500 words or fewer: depth goes in memory/notes/, which
+the SessionStart hook indexes. Link a note (ordinary Markdown, never `@`) only
+where a line here depends on it.
 -->
 
 ## Purpose & context

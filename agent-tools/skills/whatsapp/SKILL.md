@@ -67,9 +67,10 @@ is not normalised into anyone. Only the `:<digits>` device part is dropped.
 
 Assume it. Guests were given this number for the event's logistics, so "the
 Friday thing" means whatever the event has on Friday, and "where should we stay"
-is an event question. Read `memory/digest.md` and follow its links before
-answering anything substantive — most guest questions are already settled
-somewhere in the workspace.
+is an event question. Read `memory/digest.md`, then the notes in the memory
+index (printed at session start) whose descriptions bear on the question,
+before answering anything substantive — most guest questions are already
+settled somewhere in the workspace.
 
 If something genuinely unrelated arrives (a wrong number, spam, a work message),
 record it, do not answer it, and tell the owner.
@@ -557,8 +558,9 @@ the guest gets asked the same question twice.
    the same as having done nothing.
 
 8. **Leave a log line.** One `- [YYYY-MM-DD] …` entry in `memory/log.md`
-   saying who messaged, what you did, and what is still open. The next
-   session reads that before it reads anything else.
+   saying who messaged, what you did, and what is still open. A webhook
+   session is invisible to the nightly memory pass's session listing, so this
+   line and your commits are the only record it gets.
 
 ### What "done" looks like
 

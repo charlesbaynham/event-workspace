@@ -34,7 +34,7 @@ Semantic versioning, read from the consumer's side:
 
 | Bump | When | Examples |
 |---|---|---|
-| **major** | a consumer has to do something by hand, or something they rely on is gone | an `event.yaml` key renamed with no fallback, a file they registered themselves moved, a skill's section numbers renumbered (`AGENTS.md` cites them) |
+| **major** | the structure of memory already stored in consumers changes, **or** a consumer has to do something by hand, or something they rely on is gone | a new note format or memory layout (**needs a migration**, below), an `event.yaml` key renamed with no fallback, a file they registered themselves moved, a skill's section numbers renumbered (`AGENTS.md` cites them) |
 | **minor** | new or changed behaviour that lands cleanly | a new hook or skill, a new `update.sh` mode, wording in the shipped contract that changes what a session does |
 | **patch** | a fix with no behaviour change | a hook crashing on an empty file, a typo in the contract, a tightened regex |
 
@@ -44,11 +44,16 @@ Rules of thumb:
 - **Ask whether it can be made to land cleanly instead.** Keeping the old
   `event.yaml` key readable, or having `update.sh` repoint a renamed hook, turns
   a major into a minor — and is usually worth the few lines.
-- **Below `1.0.0`, breaking changes ride in a minor** (semver's major-version-zero
-  rule, and Charles's call): no compatibility shims are kept for old key names,
-  old values or renamed files — they are dropped, and the entry gets a
-  **To do by hand** section saying exactly what to edit. Say in the entry that
-  it is breaking. From `1.0.0` on, that same change is a major.
+- **A major that changes stored memory ships a migration** in the same commit:
+  `agent-tools/skills/migrate/<X.0.0>.md`, modelled on the existing ones. It must
+  be safe to re-run, touch only `memory/` (and skill registration), and end by
+  adding its version to `migrated:` in `memory/filing-state.md`. Bump the
+  template's seed `memory/filing-state.md` `migrated:` to the new major. The
+  entry's **To do by hand** says to run the `migrate` skill. Test the migration
+  on a scratch copy of a real consumer (AGENTS.md, "Checking a change").
+- No compatibility shims for old key names, old values or renamed files: they
+  are dropped, and the entry's **To do by hand** says exactly what to edit.
+  (Before `1.0.0` such changes rode in a minor; from `1.0.0` they are majors.)
 - One bump per release, not one per commit. If `VERSION` was already raised
   since the last push, extend that entry instead of adding another.
 

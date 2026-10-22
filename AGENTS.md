@@ -78,9 +78,24 @@ behaviour, bump `agent-tools/VERSION` and write the `agent-tools/CHANGELOG.md`
 entry in the same commit. **Use the `bump-version` skill**: it carries the
 semver rules, how to read what has changed since the last bump, and what a
 consumer needs from the entry. Changes outside `agent-tools/` reach nobody
-through `update.sh` and need no bump. Until `1.0.0` a breaking change rides in
-a minor and keeps **no** compatibility shim — drop the old key, name or value
-and write the migration under **To do by hand** in the entry.
+through `update.sh` and need no bump.
+
+**A major version means a change to the structure of memory already stored in
+consumer repositories** — note format, file layout, the state the tooling
+reads, anything an existing workspace's `memory/` has to be rewritten to
+match. Every major **ships a migration**,
+`agent-tools/skills/migrate/<X.0.0>.md`, which the `migrate` skill runs. The
+upgrade procedure invokes it: `update.sh` announces it, the shipped contract
+("Updating the engine") requires it, and `memory-check.sh` reports memory not
+yet migrated. A migration must be safe to re-run, must change only `memory/`
+(plus skill registration), and must end by adding its version to
+`migrated:` in `memory/filing-state.md`. Test it on a scratch copy of a real
+consumer before release. Bump the template's own seed `migrated:` line too,
+since a workspace born on a major already has that structure.
+
+Other breaking changes (an `event.yaml` key renamed, a hook moved) are majors
+too from `1.0.0` on, with a **To do by hand** section in the entry. Keep no
+compatibility shims: drop the old key, name or value and say what to edit.
 
 Consumers on `agent_tools_track: pinned` compare the text of
 `agent-tools/VERSION` against upstream's copy at session start, so a bump on
@@ -91,13 +106,16 @@ marker, and Charles's to push if he wants one.
 
 ## Memory here
 
-`memory/` here is this repository's own working memory — log template
-decisions and gotchas to `memory/log.md` as they happen, exactly as a
-workspace session would, and compact when the hook says so. It is also the
-seed every workspace starts from: `ONBOARDING.md` resets `log.md`,
-`digest.md` and `user-edits.md` to their empty forms at birth, so nothing
-logged here leaks into an event, and the headings and header comments are
-what a new workspace inherits. Keep those stable.
+`memory/` here is this repository's own working memory. There is no nightly
+filing pass here, so log template decisions and gotchas to `memory/log.md` as
+they happen, and compact by hand when the hook says the log is long: follow
+`agent-tools/skills/memory-compact/filing.md` from the log and git alone, but
+commit on your branch instead of running `sync-push.sh`, which refuses here. It is also the seed every workspace starts from:
+`ONBOARDING.md` resets `log.md`, `digest.md`, `user-edits.md` and
+`filing-state.md` to their empty forms at birth, so nothing logged here leaks
+into an event, and the headings and header comments are what a new workspace
+inherits. Keep those stable; `memory.py` parses the log's entry format, the
+baseline marker and the state file's keys.
 
 ## Checking a change before it ships
 
