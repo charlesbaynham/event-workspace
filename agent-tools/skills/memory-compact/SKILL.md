@@ -1,6 +1,6 @@
 ---
 name: memory-compact
-description: The memory filing pass — read the sessions launched with this event's repository in scope since the last pass, plus git history and memory/log.md, and file what is durable into memory/notes/ and the digest. Run by a scheduled task, nightly or as often as hourly (a Haiku session selects and dispatches, Haiku subagents review one session each, and only when there is something durable a filer subagent — Sonnet by default — files and commits). Also use when the owner asks to compact, refresh or update memory. (Creating or repairing the nightly task is the setup skill's job.)
+description: The memory filing pass — read the sessions launched with this workspace's repository in scope since the last pass, plus git history and memory/log.md, and file what is durable into memory/notes/ and the digest. Run by a scheduled task, nightly or as often as hourly (a Haiku session selects and dispatches, Haiku subagents review one session each, and only when there is something durable a filer subagent — Sonnet by default — files and commits). Also use when the owner asks to compact, refresh or update memory. (Creating or repairing the nightly task is the setup skill's job.)
 ---
 
 # The memory filing pass
@@ -12,7 +12,7 @@ the last pass:
 - **Session transcripts** — every cloud session on the owner's account that was
   launched with **this repository in scope**. Sessions without it are never
   read, however related their title looks: the owner runs many unrelated
-  sessions, and none of them belong in this event's memory.
+  sessions, and none of them belong in this workspace's memory.
 - **Git history** — covers the sessions the listing cannot show (scheduled
   tasks, webhook wakes), which commit their work and leave log lines.
 - **`memory/log.md`** — what sessions logged because a transcript would not
@@ -35,7 +35,7 @@ repository root as `python3 agent-tools/skills/memory-compact/memory.py <cmd>`.
 
 ## Running the pass
 
-1. **Start clean.** Switch to the default branch in `event.yaml` and
+1. **Start clean.** Switch to the default branch in `workspace.yaml` and
    `git pull --ff-only`. Make a run directory and keep its path:
    `RUN=$(mktemp -d)`; `mkdir $RUN/candidates`.
 
@@ -43,7 +43,7 @@ repository root as `python3 agent-tools/skills/memory-compact/memory.py <cmd>`.
    (read sessions and log entries after this), `last_commit` (read commits
    after this), `head`, `started`, `repo` (`owner/repo` of this workspace),
    `retry` (sessions a failed review left for this pass) and `filer_model`
-   (from `event.yaml`, Sonnet by default). Then
+   (from `workspace.yaml`, Sonnet by default). Then
    `memory.py log-snapshot > $RUN/log-snapshot.md` — exactly the log entries
    this pass will file; lines appended after this moment wait for the next one.
 
@@ -77,7 +77,7 @@ repository root as `python3 agent-tools/skills/memory-compact/memory.py <cmd>`.
    the Agent tool with `subagent_type: "general-purpose"`, `model: "haiku"`,
    and this prompt, filled in:
 
-   > Memory review of one session for the event workspace at `<repo root>`.
+   > Memory review of one session for the workspace at `<repo root>`.
    > Read `<repo root>/agent-tools/skills/memory-compact/reviewer.md`
    > completely and follow it. Session: `<id>` — "`<title>`". Window: events
    > after `<since>`. Write your findings to `<RUN>/candidates/<id>.md` and
@@ -102,7 +102,7 @@ repository root as `python3 agent-tools/skills/memory-compact/memory.py <cmd>`.
      `subagent_type: "general-purpose"`, `model:` the `filer_model` from
      `state.txt`, and:
 
-   > Memory filing pass for the event workspace at `<repo root>`. Read
+   > Memory filing pass for the workspace at `<repo root>`. Read
    > `<repo root>/agent-tools/skills/memory-compact/filing.md` completely and
    > follow it. Run directory: `<RUN>` (state.txt, log-snapshot.md,
    > sessions.tsv, candidates/, failed.txt if present). End with the report

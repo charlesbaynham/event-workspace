@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ---------------------------------------------------------------------------
 # SessionStart hook — put the session on an up-to-date default branch
-# (`default_branch` in event.yaml, `main` if unset).
+# (`default_branch` in workspace.yaml, `main` if unset).
 #
 # Three jobs, all of which a session otherwise gets wrong:
 #
@@ -20,7 +20,7 @@
 #
 # 3. Get off the harness's scaffolding branch, because AGENTS.md says work here
 #    goes to the default branch whatever the session boilerplate checked out.
-#    Skipped in the upstream template (no event.yaml), where branches and PRs
+#    Skipped in the upstream template (no workspace.yaml), where branches and PRs
 #    are the convention — jobs 1 and 2 still run there.
 #
 # Never destroys work: real divergence is reported and left alone. Never fails a
@@ -80,7 +80,7 @@ else
 fi
 
 if in_template; then
-  [ "$HEAD_REF" = "$BRANCH" ] || note "template repository (no event.yaml): branches are ordinary here — staying on '$HEAD_REF'."
+  [ "$HEAD_REF" = "$BRANCH" ] || note "template repository (no workspace.yaml): branches are ordinary here — staying on '$HEAD_REF'."
   exit 0
 fi
 

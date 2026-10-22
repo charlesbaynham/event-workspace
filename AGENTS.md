@@ -1,16 +1,17 @@
-# event-workspace — the template, and how to maintain it
+# memory-workspace — the template, and how to maintain it
 
-This repository is the **upstream template** for event workspaces: the engine
-in `agent-tools/`, the contract those workspaces run under, the example
-configuration, and the onboarding procedure that turns a clone into someone's
-own repository. It is **not an event workspace itself** — there is no
-`event.yaml`, no `EVENT.md`, no event to remember — and it does not run under
-the contract it ships. A session here is maintaining a codebase and behaves
-like one.
+This repository is the **upstream template** for memory workspaces — agent
+memory stores for one domain of work: an event, a project with a team, or
+open-ended life admin. It holds the engine in `agent-tools/`, the contract
+those workspaces run under, the example configuration, and the onboarding
+procedure that turns a clone into someone's own repository. It is **not a
+workspace itself** — there is no `workspace.yaml`, no `WORKSPACE.md`, nothing
+to remember but its own development — and it does not run under the contract
+it ships. A session here is maintaining a codebase and behaves like one.
 
-Not sure which repository you are in? A workspace has `event.yaml`; the
-template has only `event.yaml.example`, and its remote is
-`charlesbaynham/event-workspace`. `agent-tools/lib.sh` makes the same test
+Not sure which repository you are in? A workspace has `workspace.yaml`; the
+template has only `workspace.yaml.example`, and its remote is
+`charlesbaynham/memory-workspace`. `agent-tools/lib.sh` makes the same test
 (`in_template`) for the scripts.
 
 ## Two contracts, one per job
@@ -58,7 +59,7 @@ the shipped contract being in context here.
 - `ONBOARDING.md` is one-shot: the child deletes it in its first commit. It is
   also what makes a clone stop looking like the template — it installs
   `agent-tools/AGENTS.md` as the child's root `AGENTS.md`, trims `CLAUDE.md`,
-  rewrites the README for the event, resets `memory/`, and drops
+  rewrites the README for the workspace, resets `memory/`, and drops
   `docs/spin-out-plan.md`. Change any of those files here and check whether
   `ONBOARDING.md` still says the right thing about them.
 - `.claude/skills/*` and `.claude/agents/*` are symlinks into `agent-tools/`;
@@ -66,10 +67,15 @@ the shipped contract being in context here.
   skill or agent needs its entry in both. A **template-only** skill
   (`bump-version`) is a real directory under `.claude/skills/` instead, and
   `ONBOARDING.md` deletes it at birth — a workspace never releases the engine.
-- Per-event behaviour never goes in `agent-tools/` — it belongs in the
-  `.example` files and, for the consumer, in `event.yaml`, `EVENT.md` and
+- Per-workspace behaviour never goes in `agent-tools/` — it belongs in the
+  `.example` files and, for the consumer, in `workspace.yaml`, `WORKSPACE.md` and
   `memory/`. Keep the `.example` files in step with the keys `lib.sh` and the
   skills actually read.
+- **The engine is domain-neutral.** Events are a first-class use, but so are
+  a team's project and open-ended life admin. Nothing in `agent-tools/` may
+  assume an event (a date, guests, RSVPs) or WhatsApp: the bot is optional and
+  every rule about it is conditional on a `whatsapp:` block. Event-flavoured
+  wording belongs in examples, clearly marked as one case among several.
 
 ## Versioning
 
@@ -93,7 +99,7 @@ yet migrated. A migration must be safe to re-run, must change only `memory/`
 consumer before release. Bump the template's own seed `migrated:` line too,
 since a workspace born on a major already has that structure.
 
-Other breaking changes (an `event.yaml` key renamed, a hook moved) are majors
+Other breaking changes (an `workspace.yaml` key renamed, a hook moved) are majors
 too from `1.0.0` on, with a **To do by hand** section in the entry. Keep no
 compatibility shims: drop the old key, name or value and say what to edit.
 
@@ -113,7 +119,7 @@ they happen, and compact by hand when the hook says the log is long: follow
 commit on your branch instead of running `sync-push.sh`, which refuses here. It is also the seed every workspace starts from:
 `ONBOARDING.md` resets `log.md`, `digest.md`, `user-edits.md` and
 `filing-state.md` to their empty forms at birth, so nothing logged here leaks
-into an event, and the headings and header comments are what a new workspace
+into a workspace, and the headings and header comments are what a new workspace
 inherits. Keep those stable; `memory.py` parses the log's entry format, the
 baseline marker and the state file's keys.
 
@@ -125,7 +131,7 @@ baseline marker and the state file's keys.
 - Read the shipped contract as its reader would: a session with no memory of
   this conversation and no idea the template exists.
 - The real test is a consumer. In a scratch directory, clone this repository
-  at your branch, put it through `ONBOARDING.md`, or drop an `event.yaml` in
+  at your branch, put it through `ONBOARDING.md`, or drop an `workspace.yaml` in
   and run `agent-tools/update.sh <branch>`, and read the `git diff` it leaves.
 
 Design history in [docs/spin-out-plan.md](docs/spin-out-plan.md); what running
