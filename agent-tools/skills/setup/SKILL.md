@@ -83,8 +83,9 @@ Tell the owner what you found in a few lines before changing anything.
 
 - `name`: "<short event name> memory filing"
 - `cron_expression`: once a night at a quiet hour, off the hour
-  (`CRON_TZ=<zone> 27 3 * * *`). Ask the owner for the zone, offering both
-  their home zone and the event's when they differ.
+  (`CRON_TZ=<zone> 27 3 * * *`), in the time zone of the user you are setting
+  it up with. Use the zone your session context gives for them; ask only if it
+  gives none.
 - `create_new_session_on_fire: true`
 - `notifications`: `{}`, unless the owner wants a push every night
 - `initiation`: `human_request`
