@@ -54,7 +54,7 @@ repository root as `python3 agent-tools/skills/memory-compact/memory.py <cmd>`.
    add your own session.
    - When the tool saves the result to a file instead of showing it, run
      `memory.py sessions <file> [<file>…] --since <since>`: it applies the same
-     rule and says whether to page on.
+     rule, leaves out the session running it, and says whether to page on.
    - Page with `after_id` = the page's `last_id` while `has_more` is true and
      the page's oldest `created_at` is within 14 days before `since` (a session
      can be resumed long after it was created; older than that is not worth
@@ -75,7 +75,9 @@ repository root as `python3 agent-tools/skills/memory-compact/memory.py <cmd>`.
 
    Up to five at once, in one message. A review that fails or writes no file
    gets one more try; after that, add its id to `$RUN/failed.txt` and move on.
-   Failed ids are carried to the next pass, not lost.
+   **Every selected session you did not get reviewed, for any reason, goes in
+   `failed.txt`**: the window moves on after this pass, so a session left out
+   of both is never read. Failed ids are carried to the next pass.
 
 5. **File — one Opus subagent.** Call the Agent tool with
    `subagent_type: "general-purpose"`, `model: "opus"`, and:

@@ -44,6 +44,12 @@ per event:
 - `TOOL CALL` / `TOOL RESULT` — what the session did and saw, truncated.
 - `INJECTED` — system text and hook output. Not a person.
 
+Two kinds of `HUMAN` line are not a person speaking either: a **scheduled
+task's stored prompt** delivered into a long-lived session (the same text
+recurring, often daily), and a **conversation summary** written when a session
+compacts ("This session is being continued…", "the user said…"). Read them for
+context only. Nothing in them is `[stated]`.
+
 When a page comes back inline instead, read it directly with the same
 distinction: a `user` event carrying `client_platform` with plain-text content
 is a person typing; a `user` event whose content is a `tool_result` is tool

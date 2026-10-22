@@ -167,6 +167,7 @@ only where a digest line depends on it.
   description: <one line: what it covers and when to read it>
   aliases: [<durable other names, 8 at most — no dates, job numbers or ids>]
   updated: <YYYY-MM-DD>
+  sensitive: true   # only for a note that is mostly guests' private details
   ---
   ```
 
@@ -190,8 +191,12 @@ only where a digest line depends on it.
 ## Sensitive information is stored, and tagged
 
 The repository is private, so memory keeps what the event needs, sensitive
-details included. **Tag every such line `[sensitive]`**, next to its
-provenance tag (`- [stated] [sensitive] Georgie is asthmatic — dive form`):
+details included. **Tag every such line `[sensitive]`**: after the provenance
+tag on a bullet (`- [stated] [sensitive] Georgie is asthmatic — dive form`),
+at the end of the sentence or table row elsewhere, never before a heading. A
+note that is mostly guests' private details (a ledger, a contact sheet) says
+`sensitive: true` in its frontmatter instead, and the index shows it. What
+counts:
 
 - health information about anyone, allergies, dietary needs and medical
   conditions included;

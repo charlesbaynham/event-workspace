@@ -104,6 +104,8 @@ def cmd_index(_args):
         if meta and meta.get("description"):
             aliases = meta.get("aliases") or []
             al = f" [aliases: {', '.join(aliases)}]" if aliases else ""
+            if str(meta.get("sensitive", "")).lower() == "true":
+                al += " [sensitive]"
             upd = meta.get("updated")
             print(f"{rel}{al} — {meta['description']}" + (f" [updated {upd}]" if upd else ""))
         else:
@@ -140,8 +142,12 @@ def cmd_check(_args):
         aliases = meta.get("aliases") or []
         if isinstance(aliases, str):
             errors.append(f"{rel}: aliases must be a [list]")
-        elif len(aliases) > MAX_ALIASES:
-            errors.append(f"{rel}: {len(aliases)} aliases (max {MAX_ALIASES})")
+        else:
+            if len(aliases) > MAX_ALIASES:
+                errors.append(f"{rel}: {len(aliases)} aliases (max {MAX_ALIASES})")
+            for a in aliases:
+                if re.search(r"#\s*\d|\b\d{4}-\d{2}-\d{2}\b|^\d+$|\b(trig|session|cse)_", a):
+                    warnings.append(f"{rel}: alias '{a}' looks like a number, date or id; aliases are names")
     for p in sorted(MEM.rglob("*.md")) if MEM.is_dir() else []:
         if p.name == "CLAUDE.md":
             continue  # the deliberate subdirectory adapters
@@ -325,22 +331,36 @@ def flag(args, name, default=None):
     return default
 
 
+def own_session_key():
+    """The running session's id without its prefix: cse_X here is session_X in listings."""
+    import os
+    sid = os.environ.get("CLAUDE_CODE_REMOTE_SESSION_ID", "")
+    return sid.split("_", 1)[1] if "_" in sid else ""
+
+
 def cmd_sessions(args):
     since = flag(args, "--since")
     slug = flag(args, "--repo") or repo_slug()
+    exclude = set(filter(None, (flag(args, "--exclude") or "").split(",")))
     if not args or not since:
-        print("usage: memory.py sessions FILE... --since ISO [--repo owner/repo]", file=sys.stderr)
+        print("usage: memory.py sessions FILE... --since ISO [--repo owner/repo] [--exclude id,id]",
+              file=sys.stderr)
         return 2
     since_t = parse_iso(since)
+    own = own_session_key()
     oldest, more, last_id, seen = None, False, "", set()
     for f in args:
         page = load_ccr(f)
-        more, last_id = page.get("has_more", False), page.get("last_id", last_id)
-        for s in page.get("data", []):
-            created = parse_iso(s["created_at"])
-            oldest = created if oldest is None or created < oldest else oldest
-            if s["id"] in seen or not session_in_repo(s, slug):
+        rows = page.get("data", [])
+        page_oldest = min((parse_iso(s["created_at"]) for s in rows), default=None)
+        # Paging state comes from the oldest page given, whatever order the files came in.
+        if page_oldest is not None and (oldest is None or page_oldest < oldest):
+            oldest, more, last_id = page_oldest, page.get("has_more", False), page.get("last_id", "")
+        for s in rows:
+            if s["id"] in seen or s["id"] in exclude or not session_in_repo(s, slug):
                 continue
+            if own and s["id"].split("_", 1)[-1] == own:
+                continue  # this pass's own session
             seen.add(s["id"])
             if parse_iso(s["updated_at"]) <= since_t:
                 continue
@@ -382,11 +402,13 @@ def cmd_transcript(args):
     events, seen, oldest, first_id, more = [], set(), None, "", False
     for f in args:
         page = load_ccr(f)
-        more = more or page.get("has_more", False)
-        first_id = page.get("first_id", first_id)
-        for ev in page.get("data", []):
+        rows = page.get("data", [])
+        page_oldest = min((parse_iso(ev["created_at"]) for ev in rows), default=None)
+        # Paging state comes from the oldest page given, whatever order the files came in.
+        if page_oldest is not None and (oldest is None or page_oldest < oldest):
+            oldest, more, first_id = page_oldest, page.get("has_more", False), page.get("first_id", "")
+        for ev in rows:
             t = parse_iso(ev["created_at"])
-            oldest = t if oldest is None or t < oldest else oldest
             kind = "user" if "user" in ev else "assistant" if "assistant" in ev else None
             if not kind:
                 continue

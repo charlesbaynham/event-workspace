@@ -102,7 +102,11 @@ Tell the owner what you found in a few lines before changing anything.
 history. Set the prompt above (it replaces the old prompt entirely, including
 any hard-coded checkout path) and the name, set `enabled: true`, and set the
 schedule only if it isn't nightly. Leave its notifications as they are, but
-tell the owner what they're set to.
+tell the owner what they're set to. **A task that resumes a fixed session**
+(`persistent_session_id` set) can't become a fresh session per run through
+`update_trigger`. Create the new task as for **missing**, then ask the owner
+before disabling the old one (`update_trigger` `enabled: false`). Never delete
+it: that loses its run history.
 
 **Model.** The firing session only selects and dispatches; the reviewers and
 the filer pick their own models. A small model is enough at the top. Ask the

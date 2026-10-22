@@ -104,8 +104,10 @@ untagged, and trimming figures a note merely mirrors from the source of truth al
 in the notes whose content you change this pass — at most one or two
 restructures a night, starting with the notes you edit most. A note you only
 gave frontmatter is left as it is — except on a workspace's **first pass**
-(`last_run: never` in `state.txt`), which also tags existing sensitive lines
-`[sensitive]` in every note, keeping them rather than removing them.
+(`last_run: never` in `state.txt`), which also marks existing sensitive content
+in every note (below), keeping it rather than removing it. Frontmatter and
+sensitive tags alone don't make a note "changed": they don't move `updated`,
+and they don't oblige you to split it.
 
 **Edit, don't rewrite.** Make the smallest change that leaves the note true.
 Replace a superseded fact rather than adding next to it; keep "(previously X)"
@@ -122,7 +124,12 @@ person, who is named unless it is the owner), `[found: <source>, <date>]`, or
 (allergies, dietary needs and medical conditions included), ID, card and
 account numbers, sexual, criminal, abuse, self-harm or immigration matters, and
 a guest's private money, contact details or RSVP status. Sensitive facts are
-filed like any other; the tag is what keeps them from being shared later. Leave untouched lines as they are. Keep
+filed like any other; the tag is what keeps them from being shared later.
+Where the tag goes: after the provenance tag on a bullet; at the end of the
+sentence in prose and at the end of a table row; never before a `#` heading.
+A note that is **mostly** guests' private details (a ledger of who owes what,
+a contact sheet) gets `sensitive: true` in its frontmatter instead of a tag on
+every line. Leave untouched lines as they are. Keep
 identifiers verbatim: amounts, dates, ids, paths.
 
 Link between notes with ordinary Markdown links from the repository root
@@ -140,6 +147,7 @@ name: <the file stem>
 description: <one line: what the note covers and when to read it; don't restate the path>
 aliases: [<other names people use for this subject>]
 updated: <YYYY-MM-DD of the last content change>
+sensitive: true   # only for a note that is mostly guests' private details
 ---
 ```
 

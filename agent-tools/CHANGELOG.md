@@ -70,7 +70,9 @@ log, and replaces the nightly compaction task through the new `setup` skill.
   lists every note.
 - **New rules for reading memory:** read before saying memory has nothing on
   a subject, and treat an open item as context, never an agenda.
-- **Sensitive details are stored and tagged `[sensitive]`**: health
+- **Sensitive details are stored and tagged** (`[sensitive]` on a line, or
+  `sensitive: true` in the frontmatter of a note that is mostly guests'
+  private details): health
   (allergies, dietary needs and medical conditions included); ID, card and
   account numbers; sexual, criminal, abuse, self-harm and immigration matters;
   a guest's private money, contacts or RSVP. The tag marks what must not be
