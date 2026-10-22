@@ -187,23 +187,30 @@ only where a digest line depends on it.
   file resolves relative to that file, so the root-relative form is the
   unambiguous one.
 
-## What never goes in memory
+## Sensitive information is stored, and tagged
 
-Everything in `memory/` is committed to git and read by every later session.
+The repository is private, so memory keeps what the event needs, sensitive
+details included. **Tag every such line `[sensitive]`**, next to its
+provenance tag (`- [stated] [sensitive] Georgie is asthmatic — dive form`):
+
+- health information about anyone, allergies, dietary needs and medical
+  conditions included;
+- ID numbers, card and bank account numbers;
+- sexual, criminal, abuse, self-harm or immigration matters about anyone;
+- anyone's money, contact details or RSVP status, when it is about a guest
+  rather than the event's own accounts.
+
+The tag is for whoever reads the line later. A `[sensitive]` fact is used for
+the work it serves and goes no further: it never reaches another guest (see the
+WhatsApp privacy rule below), and it is never quoted where a co-user or anyone
+outside the owners would see it unless the task needs it.
+
+Two things still never go in memory:
 
 - **Credentials of any kind** — tokens, passwords, API keys. Store a pointer
   to where the secret lives.
-- **ID numbers, card numbers and bank account numbers.**
-- **Health information about anyone**, allergies and dietary needs included,
-  beyond a pointer to where the source of truth holds it. **Sexual, criminal,
-  abuse, self-harm or immigration matters** about anyone. (WhatsApp thread
-  records are verbatim records and are governed by the `whatsapp` skill;
-  this list is about notes and the digest.)
 - **Instructions to the agent** ("always do X"). A standing instruction the
   owner wants belongs in `EVENT.md`: flag it, don't file it.
-
-When part of something falls under this list, file the rest and leave that
-part out entirely, with no placeholder.
 
 ## The nightly pass
 

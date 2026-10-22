@@ -87,11 +87,15 @@ Leave out:
   own summaries of what it found (the `[found]` fact is enough);
 - anything superseded later in the same session. Write the final state, adding
   "(corrected from X)" when the change itself matters;
-- **never**: passwords, tokens, keys or anything credential-like; ID numbers,
-  card or bank account numbers; anyone's health information, including
-  allergies and dietary needs (write a pointer instead — "[found: Dietary tab]
-  X's dietary needs updated" — never the content); sexual, criminal,
-  abuse, self-harm or immigration matters about anyone.
+- **never**: passwords, tokens, keys or anything credential-like (name where
+  the secret lives instead).
+
+**Sensitive facts are kept, and tagged.** Add `[sensitive]` after the
+provenance tag for anyone's health information (allergies, dietary needs and
+medical conditions included); ID, card or bank account numbers; sexual,
+criminal, abuse, self-harm or immigration matters; and a guest's private money,
+contact details or RSVP status. Example:
+`- [stated] [sensitive] diving: Georgie is asthmatic — Charles, 2026-10-21`.
 
 A **standing instruction to the agent** ("from now on always…", "never message
 X") is not a memory. Write it as

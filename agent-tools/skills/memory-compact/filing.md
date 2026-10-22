@@ -49,12 +49,9 @@ Drop:
   filed: grep the notes for each entry's key identifier (a job number, an
   amount, a name) before deciding it is new;
 - facts that expire on their own;
-- the never-store list: credentials of any kind; ID, card and bank account
-  numbers; anyone's health information, allergies and dietary needs included,
-  beyond a pointer to where the source of truth holds it; sexual, criminal,
-  abuse, self-harm and immigration matters about anyone. When part of a finding
-  falls under it, file the rest and leave that part out entirely, with no
-  placeholder;
+- credentials of any kind (tokens, passwords, keys): file a pointer to where
+  the secret lives, never the secret. When part of a finding is one, file the
+  rest and leave that part out, with no placeholder;
 - figures and statuses that merely copy the source of truth. Memory points at
   live data; it doesn't mirror it. Keep a figure only when it records something
   the source can't (a decision, why a number is what it is, an agreed
@@ -102,8 +99,8 @@ dossier. Create one when you are already moving that person's material, not as
 a sweep.
 
 **Clean up gradually, where you are already editing.** Splitting long notes,
-creating people notes, removing never-store content that notes already hold,
-and trimming figures a note merely mirrors from the source of truth all happen
+creating people notes, tagging `[sensitive]` lines that notes already hold
+untagged, and trimming figures a note merely mirrors from the source of truth all happen
 in the notes whose content you change this pass — at most one or two
 restructures a night, starting with the notes you edit most. A note you only
 gave frontmatter is left as it is.
@@ -119,7 +116,11 @@ its own note and link it.
 
 **Mark provenance on every line you add or change:** `[stated]` (said by the
 person, who is named unless it is the owner), `[found: <source>, <date>]`, or
-`[inferred]` (use it sparingly). Leave untouched lines as they are. Keep
+`[inferred]` (use it sparingly). **Add `[sensitive]` beside it** for health
+(allergies, dietary needs and medical conditions included), ID, card and
+account numbers, sexual, criminal, abuse, self-harm or immigration matters, and
+a guest's private money, contact details or RSVP status. Sensitive facts are
+filed like any other; the tag is what keeps them from being shared later. Leave untouched lines as they are. Keep
 identifiers verbatim: amounts, dates, ids, paths.
 
 Link between notes with ordinary Markdown links from the repository root
@@ -175,7 +176,8 @@ with no narration ("in a previous session…").
 
 `memory.py check` must exit 0: fix every error. Fix its warnings for the notes
 you changed; long notes elsewhere wait for a pass that edits them. Read your own
-`git diff` once, adversarially: nothing excluded or never-store; nothing a
+`git diff` once, adversarially: nothing excluded, no credentials, every
+sensitive line tagged; nothing a
 session suggested now reads as the owner's decision; no secrets; every link
 resolves.
 
@@ -209,6 +211,6 @@ names):
 
 - sessions reviewed and failed; log entries and commits read;
 - notes created and edited, by name; what changed in the digest;
-- what you dropped that the owner might expect to see (exclusions, never-store);
+- what you dropped that the owner might expect to see (exclusions, credentials);
 - **for the owner to decide**: standing-instruction candidates, contradictions
   you could not settle.

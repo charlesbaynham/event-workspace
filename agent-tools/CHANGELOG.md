@@ -46,11 +46,13 @@ what they have to do about it.
 - **The digest's target drops to 500 words or fewer**, since the index now
   lists every note.
 - **New rules for reading memory:** read before saying memory has nothing on
-  a subject, and treat an open item as context, never an agenda. New
-  "What never goes in memory" list for notes and the digest: credentials; ID,
-  card and account numbers; health information (allergies and dietary needs
-  included) beyond a pointer to the source of truth; sexual, criminal, abuse,
-  self-harm and immigration matters; instructions to the agent.
+  a subject, and treat an open item as context, never an agenda.
+- **Sensitive details are stored and tagged `[sensitive]`**: health
+  (allergies, dietary needs and medical conditions included); ID, card and
+  account numbers; sexual, criminal, abuse, self-harm and immigration matters;
+  a guest's private money, contacts or RSVP. The tag marks what must not be
+  shared further. Credentials and instructions to the agent still never go in
+  memory.
 - **The log is trimmed by exact line, not truncated.** The pass removes only
   the entries it filed, so lines other sessions append while it runs survive.
   This fixes the race where a concurrent merge re-added already-folded entries.
