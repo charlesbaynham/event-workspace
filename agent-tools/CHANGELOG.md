@@ -3,11 +3,13 @@
 Every released version of the engine (`agent-tools/`), newest first. The
 version at the top is what `agent-tools/VERSION` holds.
 
-Semantic versioning: **major** — a consumer has to do something by hand
-(an `event.yaml` key, a moved file, renumbered sections); **minor** — new
+Semantic versioning: **major** — the structure of a workspace's stored memory
+changes (and a migration ships with it, run by the `migrate` skill), or a
+consumer has to do something by hand (an `event.yaml` key, a moved file,
+renumbered sections); **minor** — new
 behaviour you may want to read about, but nothing to do; **patch** — a fix
-with no behaviour change. **Until 1.0.0, breaking changes ride in a minor and
-keep no compatibility shims** — the entry says so, and lists what to edit under
+with no behaviour change. **Before 1.0.0, breaking changes rode in a minor; none
+keep compatibility shims** — the entry says so, and lists what to edit under
 **To do by hand**.
 
 A workspace is shown every entry newer than the version it runs, both by `agent-tools/hooks/version-check.sh` at session start and by
@@ -17,6 +19,90 @@ what they have to do about it.
 <!-- Maintainers: the bump-version skill (template only) writes this file and
      VERSION together, in the same commit as the change. One `## X.Y.Z — date`
      heading per version; headings are what the tooling parses. -->
+
+## 1.0.0 — 2026-10-22
+
+**Major: memory is stored differently, and a migration restructures yours.**
+After updating, commit the engine update, then run the `migrate` skill (read
+`agent-tools/skills/migrate/SKILL.md` if it is not listed yet). It gives every
+note frontmatter, tags sensitive lines, shrinks the digest, files the pending
+log, and replaces the nightly compaction task through the new `setup` skill.
+
+### Added
+
+- **The `migrate` skill and the major-version rule.** Every future major ships
+  a migration (`agent-tools/skills/migrate/<X.0.0>.md`); `update.sh` announces
+  it, the contract requires it, and `memory-check.sh` reports memory not yet
+  migrated (`migrated:` in `memory/filing-state.md`).
+- **The `setup` skill** registers, audits and repairs the workspace's
+  automations: the nightly memory pass (always) and the WhatsApp wake (when
+  configured, by way of `whatsapp/setup.md`). It does the agent's half and
+  walks the owner through theirs: choosing a model, the routine's API token,
+  or the whole thing in the browser when a session can't schedule. It records
+  ids in `memory/notes/automations.md`. Say "set up the automations".
+- `update.sh` now registers skills that arrived after the workspace was born
+  (`.claude/skills/<name>` symlinks, `.agents/skills/<name>` stubs).
+
+### Changed
+
+- **Memory is filed by a nightly pass, not by every session as it works.**
+  The `memory-compact` skill is now that pass. A scheduled task starts a
+  session that lists the owner's cloud sessions, keeps **only those launched
+  with this workspace's repository in scope**, and hands each one to a Haiku
+  subagent that reads its transcript and extracts findings tagged by
+  provenance (`[stated]`, `[confirmed]`, `[found: …]`, `[did]`, `[open]`).
+  Only when there is something durable, a filer subagent then files them,
+  along with git history and the log, into notes and the digest, and commits.
+  The filer runs on Sonnet unless `event.yaml` sets `memory_filer_model:
+  opus`. A run with nothing new stops after one Haiku listing, so the pass can
+  run hourly; `setup` asks how often and which models. The `setup` skill creates the task and
+  proves it with one run.
+- **Working sessions log far less.** The contract (`AGENTS.md`, "Writing
+  memory") drops "err on the side of logging". A session in the owner's cloud
+  account no longer stops to file what is said in the conversation. It still
+  acts on explicit "remember / forget / correct" requests in the same turn,
+  and logs only what a transcript won't carry: unattended sessions (scheduled
+  tasks and webhook wakes, so every WhatsApp session logs as before), local
+  CLI, Codex or co-user sessions, and anything settled only inside tool work.
+- **Notes carry frontmatter, and `memory-check.sh` prints an index of them at
+  `SessionStart`**: path, aliases, description. One subject per note; a fact
+  about X goes only in X's note; lines are tagged `[stated]`,
+  `[found: source, date]` or `[inferred]`. The first pass adds frontmatter to
+  existing notes.
+- **The digest's target drops to 500 words or fewer**, since the index now
+  lists every note.
+- **New rules for reading memory:** read before saying memory has nothing on
+  a subject, and treat an open item as context, never an agenda.
+- **Sensitive details are stored and tagged** (`[sensitive]` on a line, or
+  `sensitive: true` in the frontmatter of a note that is mostly guests'
+  private details): health
+  (allergies, dietary needs and medical conditions included); ID, card and
+  account numbers; sexual, criminal, abuse, self-harm and immigration matters;
+  a guest's private money, contacts or RSVP. The tag marks what must not be
+  shared further. Credentials and instructions to the agent still never go in
+  memory.
+- **The log is trimmed by exact line, not truncated.** The pass removes only
+  the entries it filed, so lines other sessions append while it runs survive.
+  This fixes the race where a concurrent merge re-added already-folded entries.
+- New `memory/filing-state.md` records each pass (`last_run`, `last_commit`,
+  and `retry` for sessions whose review failed). `memory-check.sh` warns when
+  the last pass is more than 36 hours old. Before the file exists, it reads
+  the last `memory: compact` commit instead.
+- New `agent-tools/skills/memory-compact/memory.py` (standard library only)
+  does the mechanical parts: index, check, session selection and transcript
+  condensing from saved tool output, log snapshot and trim, and state.
+
+### To do by hand
+
+- **Run the migration**: commit the engine update, then invoke the `migrate`
+  skill. It does everything below, asking you only which model should run the
+  nightly task:
+  - registers the new skill;
+  - creates `memory/filing-state.md`;
+  - runs the first filing pass (frontmatter on every note, `[sensitive]` tags,
+    a 500-word digest);
+  - runs the `setup` skill, which updates the old compaction scheduled task in
+    place and checks the WhatsApp wake.
 
 ## 0.11.0 — 2026-10-09
 

@@ -7,6 +7,11 @@ repository, the connector and the API trigger in the browser and hands the
 token back, the agent registers the subscription and tests it. Do not try to do
 their half, and do not skip the test at the end.
 
+This section is usually reached through the `setup` skill, which audits all of
+the workspace's automations and records their ids in
+`memory/notes/automations.md`. Record this routine's trigger id and
+subscription id there too (Step 6).
+
 ### Prerequisites (the owner's, before any of this)
 
 - **A WhatsApp bridge with an MCP surface and outbound webhooks.** This skill
@@ -63,7 +68,15 @@ changing this section.
 ### Step 1 — the agent finds or creates the routine (tools, our half)
 
 **Look before creating.** Run `mcp__Claude_Code_Remote__list_triggers` and look
-for a routine named as `whatsapp.routine_name` in `event.yaml`. If it exists,
+for the routine. Match it in this order:
+
+1. by the trigger id recorded in `memory/notes/automations.md` (or written in
+   `event.yaml`);
+2. by the name in `whatsapp.routine_name`;
+3. by a prompt that opens like Step 2's.
+
+If you matched on anything but the id, tell the owner, and offer to align
+`routine_name` with the trigger's actual name. If it exists,
 this step is done: compare its prompt with Step 2 and, only if they differ,
 bring it back into line with `update_trigger(prompt=…)`; check `enabled` and
 say so if it is off. Do not create a second one and do not delete it — its API
@@ -89,7 +102,7 @@ The result may print a "stores no MCP connectors" warning. **For this routine
 shape the warning is real**: the sessions it spawns get nothing that is not
 attached in the UI. Step 3 fixes that; do not skip it.
 
-Record the returned `trigger.id` (`trig_…`) in `memory/log.md`.
+Record the returned `trigger.id` (`trig_…`) in `memory/notes/automations.md`.
 
 ### Step 2 — the routine prompt
 
@@ -189,9 +202,10 @@ for one genuine end-to-end run.
 
 ### Step 6 — record it
 
-After Step 1: log the trigger id to `memory/log.md` and to a
-`memory/notes/whatsapp.md` note. After Step 5: log the subscription id and the
-fire URL. Push each time. Never the token.
+After Step 1: record the trigger id in `memory/notes/automations.md` (the
+`setup` skill's record; create it with frontmatter if it is missing). After
+Step 5: add the subscription id and the fire URL. Push each time. Never the
+token.
 
 ### Keeping it alive
 
