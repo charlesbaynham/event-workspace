@@ -1,6 +1,6 @@
 ---
 name: memory-compact
-description: The memory filing pass — read the sessions launched with this event's repository in scope since the last pass, plus git history and memory/log.md, and file what is durable into memory/notes/ and the digest. Run nightly by a scheduled task (a Haiku session selects and dispatches, Haiku subagents review one session each, an Opus subagent files and commits). Also use when the owner asks to compact, refresh or update memory, when memory-check says the pass has stopped, or to set up or repair the nightly task.
+description: The memory filing pass — read the sessions launched with this event's repository in scope since the last pass, plus git history and memory/log.md, and file what is durable into memory/notes/ and the digest. Run nightly by a scheduled task (a Haiku session selects and dispatches, Haiku subagents review one session each, an Opus subagent files and commits). Also use when the owner asks to compact, refresh or update memory. (Creating or repairing the nightly task is the setup skill's job.)
 ---
 
 # The memory filing pass
@@ -101,44 +101,14 @@ the log first, since your own transcript is not reviewed.
 
 ## Setting up the nightly task
 
-Do this from a session **in this workspace's repository**, so the sessions the
-task starts check out this repository. If a compaction task already exists
-(`list_triggers`; older workspaces named it "<event> compaction"), **update it
-in place** with `update_trigger` rather than creating a second one — that keeps
-its run history.
-
-`create_trigger` with:
-
-- `name`: "<short event name> memory filing"
-- `cron_expression`: once a night in the owner's time zone, at a quiet hour,
-  jittered off the hour (`CRON_TZ=<their zone> 27 3 * * *`)
-- `create_new_session_on_fire: true`
-- `notifications`: `{}` unless the owner wants a push each night
-- `initiation`: `human_request`
-- `prompt`:
-
-  > Nightly memory filing for this event workspace. You are a fresh session
-  > with no memory of earlier ones. Switch to the default branch named in
-  > event.yaml and pull, then invoke the `memory-compact` skill and run "Running
-  > the pass" exactly as written: you select sessions and dispatch, Haiku
-  > subagents review, an Opus subagent files and commits. Do nothing else — no
-  > event work, no messages to anyone. End with the filer's report.
-
-The orchestrating session only selects and dispatches, so a small model is
-enough. Once the owner has chosen one, set it with `update_trigger` `model`
-(the current Haiku id, for instance); never change a task's model on your own.
-
-Then **prove it**: `fire_trigger` once and read the fired session
-(`get_session`, `list_events`). Check it found `list_sessions` (if not, the pass
-fell back to git and the log; tell the owner, because transcripts are the main
-input), that it selected only this repository's sessions, and that the filer's
-commit landed on the default branch. Record the trigger id in the note about
-this workspace's tooling (or the log), and tell the owner it is set.
+The scheduled task that runs this pass is created, audited and repaired by the
+**`setup` skill** (`agent-tools/skills/setup/SKILL.md`), together with the
+workspace's other automations. Use that; don't create a task from here.
 
 ## When something is off
 
 - `memory-check.sh` reports the last pass at SessionStart. Older than about
   36 hours means the task has stopped or is failing: say so to the owner once,
-  then look at `list_triggers` (its `last_run`) and repair it here.
+  then run the `setup` skill, which audits and repairs it.
 - Co-users on their own Claude accounts, local CLI sessions and Codex are
   invisible to the listing. The contract tells those sessions to keep logging.

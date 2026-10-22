@@ -7,6 +7,11 @@ repository, the connector and the API trigger in the browser and hands the
 token back, the agent registers the subscription and tests it. Do not try to do
 their half, and do not skip the test at the end.
 
+This section is usually reached through the `setup` skill, which audits all of
+the workspace's automations and records their ids in
+`memory/notes/automations.md`. Record this routine's trigger id and
+subscription id there too (Step 6).
+
 ### Prerequisites (the owner's, before any of this)
 
 - **A WhatsApp bridge with an MCP surface and outbound webhooks.** This skill
@@ -189,9 +194,10 @@ for one genuine end-to-end run.
 
 ### Step 6 — record it
 
-After Step 1: log the trigger id to `memory/log.md` and to a
-`memory/notes/whatsapp.md` note. After Step 5: log the subscription id and the
-fire URL. Push each time. Never the token.
+After Step 1: record the trigger id in `memory/notes/automations.md` (the
+`setup` skill's record; create it with frontmatter if it is missing). After
+Step 5: add the subscription id and the fire URL. Push each time. Never the
+token.
 
 ### Keeping it alive
 

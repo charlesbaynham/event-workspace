@@ -72,13 +72,13 @@ if in_template; then
 elif [ -n "$AGE_H" ]; then
   if [ "$AGE_H" -gt "$STALE_HOURS" ]; then
     note "the nightly memory pass last ran ${AGE_H}h ago ($LAST_RUN) — it may have stopped."
-    note "Tell the owner once; the memory-compact skill's \"When something is off\" repairs it."
+    note "Tell the owner once; the setup skill audits and repairs it."
   else
     note "nightly memory pass last ran ${AGE_H}h ago; $ENTRIES log entries wait for the next."
   fi
 else
   note "no nightly memory pass has run here yet; $ENTRIES log entries are waiting."
-  note "If the owner has not set one up, offer once: memory-compact skill, \"Setting up the nightly task\"."
+  note "If the owner has not set one up, offer once: the setup skill creates it."
 fi
 
 if ! in_template && [ "$ENTRIES" -ge "$THRESHOLD" ] && { [ -z "$AGE_H" ] || [ "$AGE_H" -gt "$STALE_HOURS" ]; }; then

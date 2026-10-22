@@ -216,10 +216,30 @@ Two things still never go in memory:
 
 `memory-check.sh` reports at `SessionStart` when the pass last ran. **Older
 than about 36 hours means the scheduled task has stopped or is failing.** Tell
-the owner once; the skill's "When something is off" section repairs it. A
-workspace with no pass yet gets one from the skill's "Setting up the nightly
-task". When the owner asks to compact, refresh or update memory, run the skill
-by hand: it is the same pass.
+the owner once, then run the `setup` skill (below), which audits and repairs
+it. When the owner asks to compact, refresh or update memory, run the
+`memory-compact` skill by hand: it is the same pass.
+
+## Automations — the `setup` skill
+
+This workspace relies on work that runs with nobody in the conversation:
+
+- **the nightly memory filing pass**, always;
+- **the WhatsApp wake**, a routine fired by the bridge's webhook, when
+  `event.yaml` configures WhatsApp.
+
+**The `setup` skill registers them, audits them and repairs them**, and walks
+the owner through the steps only they can do (choosing a model, the routine's
+API token in the browser). Its record of ids and schedules is
+`memory/notes/automations.md`. Run it:
+
+- once a workspace is born;
+- as part of a major upgrade (the migration calls it);
+- whenever a scheduled task or webhook seems not to be running;
+- when the owner asks to set up or check the automations.
+
+Never create a second copy of an automation that exists: the skill repairs in
+place, which keeps the id and the run history.
 
 ## The documentation is yours — fix errors on sight
 

@@ -71,9 +71,9 @@ yourself:
 5. Optional: copy `automode.json.example` → `automode.json` and call
    `agent-tools/automode/install.sh` from the cloud environment's setup script
    (see `docs/agent-ops-notes.md` for why it has to be there).
-6. Open a session and say "set up the nightly memory pass": the
-   `memory-compact` skill creates the scheduled task that files what sessions
-   learn. From then on the hooks put each session on the default branch and
+6. Open a session and say "set up the automations": the `setup` skill creates
+   the nightly memory pass (the scheduled task that files what sessions learn)
+   and, once WhatsApp is configured, checks its webhook routine. From then on the hooks put each session on the default branch and
    print the memory index; `CLAUDE.md` imports the contract, `EVENT.md` and the
    digest.
 

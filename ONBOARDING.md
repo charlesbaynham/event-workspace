@@ -117,7 +117,7 @@ answer.
 
 | Feature | Question | Default |
 |---|---|---|
-| **Memory** | — not optional; it is the reason the repository exists. A nightly scheduled task files what sessions learned (set up after birth, §9) | on |
+| **Memory** | — not optional; it is the reason the repository exists. A nightly scheduled task files what sessions learned (the `setup` skill, after birth, §9) | on |
 | **Google Sheets** | Is the source of truth a Sheet you want the agent to read and write in place? Needs a one-off Google Cloud step from you. | on if they named a Sheet in round 1 |
 | **WhatsApp guest bot** | A dedicated number guests text, answered by the workspace, with an isolated send-gate on every reply. Needs a spare phone number and a bridge you host. | later |
 | **Auto-mode rules** | Classifier rules kept in the repo and installed into a cloud environment, so routine work runs unattended. Only meaningful for Claude Code on the web. | on; recommend it, whichever way they open the repository |
@@ -331,11 +331,11 @@ Tell them what is left, listing only what their answers actually require:
   `docs/agent-ops-notes.md` explains why a repository cannot ship classifier
   rules itself. `install.sh --inline` prints a pasteable block if the setup
   script runs before the clone.
-- **The nightly memory pass** — always: open a session in the new repository
-  and say "set up the nightly memory pass". The `memory-compact` skill creates
-  the scheduled task that files what sessions learn, and proves it with one
-  run. Until it exists, nothing reads the sessions' transcripts. Needs Claude
-  Code on the web.
+- **The automations** — always: open a session in the new repository and say
+  "set up the automations". The `setup` skill creates the nightly memory pass
+  (the scheduled task that files what sessions learn), proves it with one run,
+  and handles the WhatsApp wake too once WhatsApp is configured. Until it has
+  run, nothing reads the sessions' transcripts.
 - **WhatsApp, now or later**: the prerequisites are in
   `agent-tools/skills/whatsapp/setup.md`. When they have them, open a session in
   the new repository and say "set up the WhatsApp routine"; the skill walks both

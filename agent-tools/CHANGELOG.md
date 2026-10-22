@@ -26,7 +26,7 @@ what they have to do about it.
 After updating, commit the engine update, then run the `migrate` skill (read
 `agent-tools/skills/migrate/SKILL.md` if it is not listed yet). It gives every
 note frontmatter, tags sensitive lines, shrinks the digest, files the pending
-log, and replaces the nightly compaction task.
+log, and replaces the nightly compaction task through the new `setup` skill.
 
 ### Added
 
@@ -34,6 +34,12 @@ log, and replaces the nightly compaction task.
   a migration (`agent-tools/skills/migrate/<X.0.0>.md`); `update.sh` announces
   it, the contract requires it, and `memory-check.sh` reports memory not yet
   migrated (`migrated:` in `memory/filing-state.md`).
+- **The `setup` skill** registers, audits and repairs the workspace's
+  automations: the nightly memory pass (always) and the WhatsApp wake (when
+  configured, by way of `whatsapp/setup.md`). It does the agent's half and
+  walks the owner through theirs: choosing a model, the routine's API token,
+  or the whole thing in the browser when a session can't schedule. It records
+  ids in `memory/notes/automations.md`. Say "set up the automations".
 - `update.sh` now registers skills that arrived after the workspace was born
   (`.claude/skills/<name>` symlinks, `.agents/skills/<name>` stubs).
 
@@ -46,8 +52,8 @@ log, and replaces the nightly compaction task.
   subagent that reads its transcript and extracts findings tagged by
   provenance (`[stated]`, `[confirmed]`, `[found: …]`, `[did]`, `[open]`). An
   Opus subagent then files them, along with git history and the log, into
-  notes and the digest, and commits. The skill's "Setting up the nightly task"
-  creates the task and proves it with one run.
+  notes and the digest, and commits. The `setup` skill creates the task and
+  proves it with one run.
 - **Working sessions log far less.** The contract (`AGENTS.md`, "Writing
   memory") drops "err on the side of logging". A session in the owner's cloud
   account no longer stops to file what is said in the conversation. It still
@@ -90,7 +96,8 @@ log, and replaces the nightly compaction task.
   - creates `memory/filing-state.md`;
   - runs the first filing pass (frontmatter on every note, `[sensitive]` tags,
     a 500-word digest);
-  - updates the old compaction scheduled task in place.
+  - runs the `setup` skill, which updates the old compaction scheduled task in
+    place and checks the WhatsApp wake.
 
 ## 0.11.0 — 2026-10-09
 
