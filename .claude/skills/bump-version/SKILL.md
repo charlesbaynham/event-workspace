@@ -41,19 +41,26 @@ Semantic versioning, read from the consumer's side:
 Rules of thumb:
 
 - **Take the highest bump any single change earns**, not the average.
-- **Ask whether it can be made to land cleanly instead.** Keeping the old
-  `workspace.yaml` key readable, or having `update.sh` repoint a renamed hook, turns
-  a major into a minor — and is usually worth the few lines.
+- **Ask whether it can be made to land cleanly instead.** Having `update.sh`
+  repoint a renamed hook, or adding a key with a default, keeps a change
+  minor — and is usually worth the few lines. Keeping an old name readable
+  does not: that is a shim (below).
 - **A major that changes stored memory ships a migration** in the same commit:
   `agent-tools/skills/migrate/<X.0.0>.md`, modelled on the existing ones. It must
-  be safe to re-run, touch only `memory/` (and skill registration), and end by
+  be safe to re-run, touch only what the workspace owns (`memory/`,
+  `workspace.yaml`, `WORKSPACE.md`, `CLAUDE.md`'s imports, skill registration;
+  never `agent-tools/`), and end by
   adding its version to `migrated:` in `memory/filing-state.md`. Bump the
   template's seed `memory/filing-state.md` `migrated:` to the new major. The
   entry's **To do by hand** says to run the `migrate` skill. Test the migration
   on a scratch copy of a real consumer (AGENTS.md, "Checking a change").
 - No compatibility shims for old key names, old values or renamed files: they
-  are dropped, and the entry's **To do by hand** says exactly what to edit.
-  (Before `1.0.0` such changes rode in a minor; from `1.0.0` they are majors.)
+  are dropped, and the entry's **To do by hand** (or the migration) says
+  exactly what changes. (Before `1.0.0` such changes rode in a minor; from
+  `1.0.0` they are majors.) **One exception** (AGENTS.md, "Versioning"): a
+  fallback the engine needs to run the very migration that renames the thing,
+  listed in the entry and removed in the next major. When cutting a major,
+  remove the previous major's fallbacks.
 - One bump per release, not one per commit. If `VERSION` was already raised
   since the last push, extend that entry instead of adding another.
 

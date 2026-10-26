@@ -93,15 +93,28 @@ match. Every major **ships a migration**,
 `agent-tools/skills/migrate/<X.0.0>.md`, which the `migrate` skill runs. The
 upgrade procedure invokes it: `update.sh` announces it, the shipped contract
 ("Updating the engine") requires it, and `memory-check.sh` reports memory not
-yet migrated. A migration must be safe to re-run, must change only `memory/`
-(plus skill registration), and must end by adding its version to
+yet migrated. A migration must be safe to re-run, must change only what the
+workspace owns — `memory/`, the files the engine reads from it
+(`workspace.yaml`, `WORKSPACE.md`, the imports in `CLAUDE.md`) and skill
+registration — never `agent-tools/`, and must end by adding its version to
 `migrated:` in `memory/filing-state.md`. Test it on a scratch copy of a real
 consumer before release. Bump the template's own seed `migrated:` line too,
 since a workspace born on a major already has that structure.
 
 Other breaking changes (a `workspace.yaml` key renamed, a hook moved) are majors
-too from `1.0.0` on, with a **To do by hand** section in the entry. Keep no
-compatibility shims: drop the old key, name or value and say what to edit.
+too from `1.0.0` on, with a **To do by hand** section in the entry, or a
+migration step when the migration can do it.
+
+**Compatibility shims: one exception, and it expires.** By default keep none:
+drop the old key, name or value and say what to edit. The exception is a file
+or key the engine needs *in order to run the migration that renames it* — the
+config file `in_template` tests, say. `update.sh` lands the new engine before
+the migration runs, so without a fallback the workspace stops looking like
+one. Such a fallback reads the old name only when the new one is missing, is
+commented as belonging to that migration, is listed in the changelog entry,
+and is removed in the next major. 1.0.0's is the one live example:
+`event.yaml`/`EVENT.md` in `lib.sh`, `memory.py`, `render.sh` and
+`load-memory.sh`, to be dropped in 2.0.0.
 
 Consumers on `agent_tools_track: pinned` compare the text of
 `agent-tools/VERSION` against upstream's copy at session start, so a bump on
