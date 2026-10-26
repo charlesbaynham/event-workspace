@@ -74,7 +74,7 @@ Explicit asks:
   note and the digest. Then add an `Exclude …` entry to `user-edits.md` if
   there isn't one, so an older transcript can never bring it back.
 - **Standing instructions** are not memory. File none of them; list them in
-  your report so the owner can decide whether they belong in `EVENT.md`.
+  your report so the owner can decide whether they belong in `WORKSPACE.md`.
 
 **Provenance is the thing summarising most often corrupts.** A `[stated]`
 finding may be filed as the person's word. `[confirmed]` is their decision on
@@ -93,7 +93,7 @@ facts or reference material someone will look up (a supplier's terms, a
 contract's clauses). Otherwise put the fact in the closest existing note.
 
 Recurring people — the planner, a supplier, a family member who is always
-involved — get `memory/notes/people/<name>.md`: who they are to the event, how
+involved — get `memory/notes/people/<name>.md`: who they are to the work, how
 to deal with them, what has been agreed with them. Relationship context, not a
 dossier. Create one when you are already moving that person's material, not as
 a sweep.
@@ -123,11 +123,11 @@ person, who is named unless it is the owner), `[found: <source>, <date>]`, or
 `[inferred]` (use it sparingly). **Add `[sensitive]` beside it** for health
 (allergies, dietary needs and medical conditions included), ID, card and
 account numbers, sexual, criminal, abuse, self-harm or immigration matters, and
-a guest's private money, contact details or RSVP status. Sensitive facts are
+a person's private money, contact details or RSVP status. Sensitive facts are
 filed like any other; the tag is what keeps them from being shared later.
 Where the tag goes: after the provenance tag on a bullet; at the end of the
 sentence in prose and at the end of a table row; never before a `#` heading.
-A note that is **mostly** guests' private details (a ledger of who owes what,
+A note that is **mostly** people's private details (a ledger of who owes what,
 a contact sheet) gets `sensitive: true` in its frontmatter instead of a tag on
 every line. Leave untouched lines as they are. Keep
 identifiers verbatim: amounts, dates, ids, paths.
@@ -147,7 +147,7 @@ name: <the file stem>
 description: <one line: what the note covers and when to read it; don't restate the path>
 aliases: [<other names people use for this subject>]
 updated: <YYYY-MM-DD of the last content change>
-sensitive: true   # only for a note that is mostly guests' private details
+sensitive: true   # only for a note that is mostly people's private details
 ---
 ```
 
@@ -167,12 +167,12 @@ Rewrite `memory/digest.md` as the core every session needs, in **500 words or
 fewer** not counting Tools & resources (which stays a compact list of ids and
 locations), under its five headings, unchanged:
 
-- **Purpose & context** — what the event is, when and where, who the people are.
+- **Purpose & context** — what this workspace is for (an event: when and where; a project: its goal and team; life admin: its scope), who the people are.
 - **Current state** — the phase, and the few facts everyone needs right now.
 - **On the horizon** — the next dated things. This is context for a session,
   not an agenda: write enough that a session can act on an item if the person
   raises it, and nothing that reads as a prompt to bring it up.
-- **Key learnings & principles** — cross-cutting facts about how this event
+- **Key learnings & principles** — cross-cutting facts about how this workspace's domain
   works. A learning is a fact about the world; "always do X" is an instruction
   and goes in your report, not here.
 - **Tools & resources** — the source of truth and where things live. Not a list

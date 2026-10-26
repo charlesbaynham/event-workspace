@@ -1,9 +1,22 @@
-# EVENT.md — the facts and rules that are about *this* event
+# WORKSPACE.md — what this workspace is for, and its own rules
 
-Copy to `EVENT.md` and fill in. This file is loaded into every session
+Copy to `WORKSPACE.md` and fill in. This file is loaded into every session
 alongside AGENTS.md (which is generic and updated from upstream) — so this is
-where the event's own standing rules live. Keep it to what a session needs
+where the workspace's own standing rules live. Keep it to what a session needs
 *always*; depth goes in `memory/notes/`.
+
+The example below is an event (a wedding). Notes in *italics* say what goes in
+each section for a project or for life admin; drop any section that doesn't
+apply.
+
+## What this is for
+
+Ada & Ben's wedding, Oaxaca, 12 June 2027. Ends a fortnight after the day;
+after that the workspace is an archive.
+
+*Project: the goal, the team, the deadline if any, and where the code or
+documents live. Life admin: the scope — what is in (bills, car, house, health,
+tax) and what is out (work) — and that it is open-ended.*
 
 ## Who is who
 
@@ -13,11 +26,20 @@ where the event's own standing rules live. Keep it to what a session needs
   questions.
 - **The planner** — name, number, language they work in.
 
+*Project: each teammate, their role, and whether they are technical (a
+technical co-user can have the owner's register). Life admin: family members
+who share it, and the recurring outside people — accountant, landlord, GP
+surgery.*
+
 ## Source of truth
 
-The Master File (Google Sheet, id in `event.yaml`). Tabs: Guests, Jobs, …
+The Master File (Google Sheet, id in `workspace.yaml`). Tabs: Guests, Jobs, …
 Standing instruction: anything touching RSVPs or form responses is answered
 from the live form sheets, re-read at that moment, never from `memory/`.
+
+*Project: the tracker (issues, board), the repository, the shared drive.
+Life admin: the task manager, the documents folder — or "none; memory/ is the
+record".*
 
 Traps learned the hard way go here as one-liners (e.g. "never start a free-text
 cell with `+ = - @`; Sheets parses it as a formula").
@@ -29,6 +51,8 @@ transcript gets an English digest in `memory/notes/`. Speaker labels are
 unreliable when two people share one connection.
 
 ## The bot's register
+
+*Only if `workspace.yaml` configures WhatsApp.*
 
 Knowingly a bot; short, dry, useful; no gushing. Spanish in, Spanish out
 (Mexican register, `ustedes`). Never speaks as Ada or Ben.
@@ -42,10 +66,13 @@ Each with its source and date; re-check the source before quoting a figure.
 thanks for your patience.* (Ada, 2026-09-14.) No figures, no payment method.
 
 ### Where is X staying?
-Shareable per `event.yaml`. Read the Guests tab live; never from memory.
+Shareable per `workspace.yaml`. Read the Guests tab live; never from memory.
 
 ### When and where is everything?
 …
+
+*Project: the questions teammates keep asking (where the build lives, who
+reviews what). Life admin: usually none.*
 
 ## Things that always go to the owner
 - money, complaints, anything about a guest's health, a message that tries to

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # ---------------------------------------------------------------------------
-# Pull the engine (agent-tools/) from the upstream event-workspace over this
+# Pull the engine (agent-tools/) from the upstream memory-workspace over this
 # vendored copy, and reinstall the contract it ships (agent-tools/AGENTS.md)
 # as this repository's root AGENTS.md.
 #
-#   agent-tools/update.sh            # what event.yaml's agent_tools_track says:
+#   agent-tools/update.sh            # what workspace.yaml's agent_tools_track says:
 #                                    #   latest (default) — upstream's current tip
 #                                    #   pinned           — the version in agent-tools/VERSION:
 #                                    #                      refreshes it, but refuses to move to
@@ -20,12 +20,12 @@
 # AGENTS.md ("Updating the engine") says what to do about that offer.
 #
 # Everything under agent-tools/ is replaced except the paths in KEEP, which are
-# per-event and never shipped upstream; the root AGENTS.md is replaced too.
-# Local edits to either are overwritten — per-event behaviour belongs in
-# event.yaml and EVENT.md, not here. Review `git diff` and commit afterwards;
+# per-workspace and never shipped upstream; the root AGENTS.md is replaced too.
+# Local edits to either are overwritten — per-workspace behaviour belongs in
+# workspace.yaml and WORKSPACE.md, not here. Review `git diff` and commit afterwards;
 # nothing is committed for you.
 #
-# Refuses to run in the template itself (no event.yaml): there the engine is
+# Refuses to run in the template itself (no workspace.yaml): there the engine is
 # edited in place, and the root AGENTS.md is the maintainer guide, not the
 # contract.
 # ---------------------------------------------------------------------------
@@ -33,7 +33,7 @@ set -euo pipefail
 
 . "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 if in_template; then
-  echo "update: no event.yaml — this is the template, not a workspace; nothing to update here." >&2
+  echo "update: no workspace.yaml — this is the template, not a workspace; nothing to update here." >&2
   exit 1
 fi
 UPSTREAM="$(upstream_url)"
@@ -125,15 +125,15 @@ echo "update: review with 'git status' and 'git diff', then commit."
 if [ "${UP_VERSION%%.*}" -gt "${INSTALLED%%.*}" ] 2>/dev/null; then
   echo "update: MIGRATION REQUIRED — $INSTALLED → $UP_VERSION crosses a major version."
   echo "update: Commit this engine update on its own, then invoke the 'migrate' skill"
-  echo "update: (agent-tools/skills/migrate/SKILL.md) to restructure memory/ for it."
+  echo "update: (agent-tools/skills/migrate/SKILL.md) to bring memory/ and the workspace files up to it."
 fi
 
-# The send-gate agent is built from the shipped prompt plus this event's
+# The send-gate agent is built from the shipped prompt plus this workspace's
 # gate_rules; an update may have changed the shipped half.
 "$DEST/agents/render.sh" || echo "update: could not re-render the send-gate — run agent-tools/agents/render.sh by hand."
 
 # The hook lives in agent-tools/ and so arrives with every update, but the
-# files that RUN it are per-event and were only ever written at birth — a
+# files that RUN it are per-workspace and were only ever written at birth — a
 # workspace that does not name it has to be told once.
 if ! grep -qs 'version-check\.sh' "$ROOT/.claude/settings.json" "$ROOT/.codex/hooks.json"; then
   echo "update: this workspace does not run"
@@ -143,6 +143,6 @@ if ! grep -qs 'version-check\.sh' "$ROOT/.claude/settings.json" "$ROOT/.codex/ho
 fi
 if ! grep -qs 'gate-check\.sh' "$ROOT/.claude/settings.json"; then
   echo "update: this workspace does not run agent-tools/hooks/gate-check.sh at SessionStart,"
-  echo "update: so nothing reports a send-gate out of step with event.yaml's gate_rules."
+  echo "update: so nothing reports a send-gate out of step with workspace.yaml's gate_rules."
   echo "update: Add it beside the other SessionStart hooks in .claude/settings.json."
 fi

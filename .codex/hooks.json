@@ -1,5 +1,5 @@
 {
-  "description": "Event workspace lifecycle hooks.",
+  "description": "Memory workspace lifecycle hooks.",
   "hooks": {
     "SessionStart": [
       {
@@ -28,7 +28,7 @@
             "command": "\"$(git rev-parse --show-toplevel)/agent-tools/hooks/load-memory.sh\"",
             "timeout": 10,
             "additionalContextLimit": 16000,
-            "statusMessage": "Loading event memory"
+            "statusMessage": "Loading workspace memory"
           }
         ]
       }

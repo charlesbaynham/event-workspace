@@ -22,11 +22,18 @@ what they have to do about it.
 
 ## 1.0.0 — 2026-10-22
 
-**Major: memory is stored differently, and a migration restructures yours.**
-After updating, commit the engine update, then run the `migrate` skill (read
-`agent-tools/skills/migrate/SKILL.md` if it is not listed yet). It gives every
-note frontmatter, tags sensitive lines, shrinks the digest, files the pending
-log, and replaces the nightly compaction task through the new `setup` skill.
+**Major: memory is stored differently, the configuration files are renamed,
+and a migration does both for you.** After updating, commit the engine update,
+then run the `migrate` skill (read `agent-tools/skills/migrate/SKILL.md` if it
+is not listed yet). It renames `event.yaml` and `EVENT.md`, gives every note
+frontmatter, tags sensitive lines, shrinks the digest, files the pending log,
+and replaces the nightly compaction task through the new `setup` skill.
+
+**event-workspace is now memory-workspace.** The template and its contract no
+longer assume an event: a workspace can equally hold a project with a team or
+open-ended life admin, and events remain a first-class use. WhatsApp stays and
+stays optional — every rule about it applies only when `workspace.yaml` has a
+`whatsapp:` block.
 
 ### Added
 
@@ -45,6 +52,25 @@ log, and replaces the nightly compaction task through the new `setup` skill.
 
 ### Changed
 
+- **`event.yaml` → `workspace.yaml`, `EVENT.md` → `WORKSPACE.md`.** Same keys,
+  same content. Until the migration renames them, `lib.sh`, `memory.py`,
+  `render.sh` and the Codex `load-memory.sh` hook fall back to the old names,
+  so an updated-but-unmigrated workspace still works; nothing else does, and
+  the fallback goes in a later major.
+- **The contract is domain-neutral.** `AGENTS.md` describes a memory store for
+  one domain of work, names a source of truth only where `workspace.yaml`
+  does (and says what happens when it names none), lets `WORKSPACE.md` give a
+  technical co-user the owner's register, and marks the WhatsApp section
+  optional. "Guest" becomes "person" or "contact" throughout the engine.
+- **Send-gate wording.** Its categories are about any other person, not
+  another guest; the escalation category `other-guest-information` is now
+  `other-person-information`, and the section `render.sh` appends from
+  `gate_rules` is now "Workspace-specific rules". `update.sh` re-renders the
+  gate; commit the regenerated `.claude/agents/whatsapp-send-gate.md` if it
+  changed.
+- **The upstream URL is `https://github.com/charlesbaynham/memory-workspace`.**
+  The old URL redirects; update `agent_tools_upstream` in `workspace.yaml` when
+  convenient.
 - **Memory is filed by a nightly pass, not by every session as it works.**
   The `memory-compact` skill is now that pass. A scheduled task starts a
   session that lists the owner's cloud sessions, keeps **only those launched
@@ -78,7 +104,7 @@ log, and replaces the nightly compaction task through the new `setup` skill.
   private details): health
   (allergies, dietary needs and medical conditions included); ID, card and
   account numbers; sexual, criminal, abuse, self-harm and immigration matters;
-  a guest's private money, contacts or RSVP. The tag marks what must not be
+  another person's private money, contacts or RSVP. The tag marks what must not be
   shared further. Credentials and instructions to the agent still never go in
   memory.
 - **The log is trimmed by exact line, not truncated.** The pass removes only
@@ -97,6 +123,8 @@ log, and replaces the nightly compaction task through the new `setup` skill.
 - **Run the migration**: commit the engine update, then invoke the `migrate`
   skill. It does everything below, asking you only which model should run the
   nightly task:
+  - renames `event.yaml` → `workspace.yaml` and `EVENT.md` → `WORKSPACE.md`,
+    and updates the `@EVENT.md` import in `CLAUDE.md`;
   - registers the new skill;
   - creates `memory/filing-state.md`;
   - runs the first filing pass (frontmatter on every note, `[sensitive]` tags,

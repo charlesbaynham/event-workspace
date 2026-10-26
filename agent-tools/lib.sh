@@ -1,32 +1,39 @@
 #!/usr/bin/env bash
-# Shared by the hooks and scripts. Source it; it sets ROOT and defines
-# event_cfg. Top-level scalars of event.yaml only — nested keys are for the
-# skills, which read the file as prose.
+# Shared by the hooks and scripts. Source it; it sets ROOT and CONFIG and
+# defines ws_cfg. Top-level scalars of workspace.yaml only — nested keys are
+# for the skills, which read the file as prose.
 ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || ROOT="$PWD"
 
-event_cfg() {
+# The workspace's configuration. Before 1.0.0 it was event.yaml; a workspace
+# whose engine is updated but whose 1.0.0 migration has not yet renamed it is
+# still read from there, so the migration itself can run.
+CONFIG="$ROOT/workspace.yaml"
+[ -f "$CONFIG" ] || [ ! -f "$ROOT/event.yaml" ] || CONFIG="$ROOT/event.yaml"
+export WORKSPACE_CONFIG="$CONFIG"
+
+ws_cfg() {
   local key="$1" default="$2" value=""
-  [ -f "$ROOT/event.yaml" ] && value="$(sed -nE "s/^${key}:[[:space:]]*//p" "$ROOT/event.yaml" | head -1 \
+  [ -f "$CONFIG" ] && value="$(sed -nE "s/^${key}:[[:space:]]*//p" "$CONFIG" | head -1 \
     | sed -E 's/[[:space:]]+#.*$//; s/^"(.*)"$/\1/; s/^'"'"'(.*)'"'"'$/\1/')"
   printf '%s\n' "${value:-$default}"
 }
 
-BRANCH="$(event_cfg default_branch main)"
+BRANCH="$(ws_cfg default_branch main)"
 
-# The upstream template ships event.yaml.example only; every workspace born
-# from it has event.yaml. Scripts that only make sense in a workspace use this
+# The upstream template ships workspace.yaml.example only; every workspace born
+# from it has workspace.yaml (or, before its 1.0.0 migration, event.yaml). Scripts that only make sense in a workspace use this
 # to refuse, and git-sync uses it to leave branches alone.
-in_template() { [ ! -f "$ROOT/event.yaml" ]; }
+in_template() { [ ! -f "$CONFIG" ]; }
 
 # --- engine updates --------------------------------------------------------
 # Where update.sh pulls from, and how closely it follows.
-upstream_url() { event_cfg agent_tools_upstream https://github.com/charlesbaynham/event-workspace; }
+upstream_url() { ws_cfg agent_tools_upstream https://github.com/charlesbaynham/memory-workspace; }
 
-# event.yaml's agent_tools_track:
+# workspace.yaml's agent_tools_track:
 #   latest — upstream's default branch, taken whenever you update
 #   pinned — the version in agent-tools/VERSION; nothing moves unasked
 #   <name> — any other value is a branch, followed like `latest` but on it
-update_track() { event_cfg agent_tools_track latest; }
+update_track() { ws_cfg agent_tools_track latest; }
 
 # The ref a bare update fetches: upstream's default branch on both named
 # tracks, the named branch otherwise.
