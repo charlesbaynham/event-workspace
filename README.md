@@ -1,9 +1,12 @@
-# event-workspace
+# memory-workspace
 
-A template for running an event — a wedding, a conference, a festival — with AI
-agents that **remember across sessions** and **answer guests on WhatsApp**
-without leaking anyone's private details. Extracted from a workspace that ran a
-real wedding with ~90 guests, then scrubbed of everything about them.
+A template for a git repository that gives AI agents **memory across
+sessions** for one domain of work: running an event (a wedding, a conference, a
+festival), managing a project with a team, or open-ended life admin.
+Optionally, it runs a **WhatsApp bot** that answers the people involved without
+leaking anyone's private details. Extracted from a workspace that ran a real
+wedding with ~90 guests, then scrubbed of everything about them; events remain
+a first-class use, but nothing in the engine assumes one.
 
 It is not an app. It is a git repository shaped so that an ephemeral agent
 session (Claude Code on the web, Codex, or anything that reads `AGENTS.md`)
@@ -16,21 +19,22 @@ Paste this into Claude Code, Codex or any coding agent, from your home directory
 with nothing cloned. There is nothing to fill in — it asks you.
 
 ```text
-Set up a new event workspace for me from the template at
-https://github.com/charlesbaynham/event-workspace.
+Set up a new memory workspace for me from the template at
+https://github.com/charlesbaynham/memory-workspace.
 
 Clone it into a new folder in my home directory, then read ONBOARDING.md in
-that folder and follow it as your prompt. It will interview me about the event
-and configure the workspace from my answers — ask me its questions rather than
+that folder and follow it as your prompt. It will interview me about what the
+workspace is for and configure it from my answers — ask me its questions rather than
 guessing.
 ```
 
 [`ONBOARDING.md`](ONBOARDING.md) is the whole setup procedure, written to be
-executed by an agent rather than read by you: three rounds of questions (the
-event and the people, which features you want, where the repository lives) and a
-recap you confirm, then it writes `event.yaml` and `EVENT.md`, installs the
-shipped contract as your root `AGENTS.md`, reseeds `memory/` for your event,
-replaces this README with one about the event, checks the hooks all run, creates
+executed by an agent rather than read by you: three rounds of questions (what
+it is for and who is involved, which features you want, where the repository
+lives) and a
+recap you confirm, then it writes `workspace.yaml` and `WORKSPACE.md`, installs the
+shipped contract as your root `AGENTS.md`, reseeds `memory/`,
+replaces this README with one about your workspace, checks the hooks all run, creates
 the private repo, pushes, and tells you the one or two things only you can do.
 Answer in prose, skip what you do not care about, say "all the defaults" — it
 takes what you give it. The document deletes itself in the first commit, so your
@@ -40,11 +44,11 @@ repository never carries it.
 
 | Piece | What it does |
 |---|---|
-| **Memory** (`memory/`, `memory-compact` skill, hooks) | A digest injected into every session, an append-only log written during work, user corrections, and a compaction procedure that keeps the digest small. |
+| **Memory** (`memory/`, `memory-compact` skill, hooks) | A small digest injected into every session, one note per subject indexed at session start, user corrections, and a nightly filing pass: a scheduled task that reads the sessions launched with this repository in scope and files what is durable into the notes. |
 | **Session hygiene** (`agent-tools/hooks/git-sync.sh`, `agent-tools/sync-push.sh`) | Repairs the shallow-snapshot divergence cloud containers show, keeps sessions on the default branch, and pushes with rebase-and-retry so two concurrent sessions don't lose each other's work. |
-| **WhatsApp** (`whatsapp` skill, `whatsapp-send-gate` agent) | A dedicated bot number answers guests. Every reply is drafted, recorded, then judged by an isolated subagent that sees only the transcript, the draft, and an identity check. Anything about another guest, anyone's money, or anything embarrassing waits for the owner. One thread file per guest is the durable record. Webhook-driven: each message wakes a fresh session. |
-| **gsheets** skill | Read and write the event's Google Sheet in place via a service account. Ships no key. |
-| **Two registers** | A technical owner and non-technical co-users get different voices, the same facts. |
+| **WhatsApp**, optional (`whatsapp` skill, `whatsapp-send-gate` agent) | A dedicated bot number answers the people involved — an event's guests, a project's team. Every reply is drafted, recorded, then judged by an isolated subagent that sees only the transcript, the draft, and an identity check. Anything about another person, anyone's money, or anything embarrassing waits for the owner. One thread file per contact is the durable record. Webhook-driven: each message wakes a fresh session. Off unless `workspace.yaml` has a `whatsapp:` block. |
+| **gsheets** skill | Read and write a Google Sheet in place via a service account. Ships no key. |
+| **Two registers** | A technical owner and co-users (a partner, teammates, family) get different voices, the same facts. |
 | **Classifier rules** (`automode.json`, `agent-tools/automode/`) | Auto-mode rules kept in the repo, installed into the environment by a script the setup script calls, with a session-start drift check. A repo cannot ship these directly; see the ops notes. |
 | **The contract** (`agent-tools/AGENTS.md`, installed as your root `AGENTS.md`) | The rules above, written for an agent to follow. Generic; updated from upstream. This repository's own root `AGENTS.md` is the maintainer guide for the template, not the contract. |
 
@@ -54,8 +58,8 @@ repository never carries it.
 yourself:
 
 1. **Use this template** (GitHub → *Use this template*) into a private repo.
-2. Copy `event.yaml.example` → `event.yaml` and `EVENT.md.example` → `EVENT.md`;
-   fill them in. Everything about *your* event goes in those two files and in
+2. Copy `workspace.yaml.example` → `workspace.yaml` and `WORKSPACE.md.example` → `WORKSPACE.md`;
+   fill them in. Everything about *your* workspace goes in those two files and in
    `memory/`; never in `agent-tools/`. Then `cp agent-tools/AGENTS.md AGENTS.md`
    — the contract replaces the template's maintainer guide — and empty
    `memory/log.md` back to its header: what is there is the template's own
@@ -64,15 +68,17 @@ yourself:
    `agent-tools/skills/gsheets/scripts/bootstrap_gcp.sh` once in Cloud Shell,
    put the key it prints in the agent environment as
    `GOOGLE_SERVICE_ACCOUNT_KEY`, and share the Sheet with the service account.
-4. For WhatsApp: stand up a bridge (see `agent-tools/skills/whatsapp/setup.md`
+4. For WhatsApp (optional): stand up a bridge (see `agent-tools/skills/whatsapp/setup.md`
    for the prerequisites — a second phone number, the bridge, a connector), then
    open a session and say "set up the WhatsApp routine". The skill walks both of
    you through it.
 5. Optional: copy `automode.json.example` → `automode.json` and call
    `agent-tools/automode/install.sh` from the cloud environment's setup script
    (see `docs/agent-ops-notes.md` for why it has to be there).
-6. Open a session. The hooks put it on the default branch and tell it whether
-   memory needs compacting; `CLAUDE.md` imports the contract, `EVENT.md` and the
+6. Open a session and say "set up the automations": the `setup` skill creates
+   the nightly memory pass (the scheduled task that files what sessions learn)
+   and, once WhatsApp is configured, checks its webhook routine. From then on the hooks put each session on the default branch and
+   print the memory index; `CLAUDE.md` imports the contract, `WORKSPACE.md` and the
    digest.
 
 Codex users: `.codex/hooks.json` and `.agents/skills/` wire the same engine.
@@ -91,7 +97,7 @@ git diff && git commit -am "agent-tools: 0.6.0"
 ```
 
 What "upstream" means is your choice, recorded as `agent_tools_track` in
-`event.yaml`:
+`workspace.yaml`:
 
 - **`latest`** — the tip of this repo's default branch: what the author runs
   day to day, including work in progress. Every `update.sh` takes it.
@@ -100,13 +106,13 @@ What "upstream" means is your choice, recorded as `agent_tools_track` in
   `agent-tools/hooks/version-check.sh` compares that file with upstream's copy
   at session start, and when upstream is ahead the agent offers the update
   **with the changelog entries you do not have yet**: update now, not now, not
-  this version, or stop offering. The last two are remembered in `event.yaml`
+  this version, or stop offering. The last two are remembered in `workspace.yaml`
   (`agent_tools_version_skip`, `agent_tools_update_check: off`) so you are
   asked once. Taking it is `update.sh --accept`.
 
   Versions follow semantic versioning: a patch is a fix, a minor adds a feature
   or changes behaviour you may want to read about, a major changes something
-  you have to act on (`event.yaml` keys, file layout, the skill's section
+  you have to act on (`workspace.yaml` keys, file layout, the skill's section
   numbers) — and says so under **To do by hand** in the changelog. Pick this
   track if you would rather not be surprised.
 
@@ -114,7 +120,12 @@ Nothing reads git tags: a version is the text in `agent-tools/VERSION`, on
 whichever branch you follow. `update.sh <tag|branch|full sha>` still overrides
 the track for one run.
 
-**Before 1.0.0 there are no compatibility shims** — a breaking change is
+**Upgrading from 0.x to 1.0.0:** `event.yaml` and `EVENT.md` became
+`workspace.yaml` and `WORKSPACE.md`. Commit the engine update, then run the
+`migrate` skill; it renames them, fixes the `CLAUDE.md` import, and restructures
+memory. Until then the engine still reads the old names.
+
+**Before 1.0.0 there were no compatibility shims** — a breaking change is
 described under **To do by hand** in the changelog entry, and you make it
 yourself. **Upgrading from 0.5.0 or 0.4.x:** rename your `agent_tools_track`
 (`tags` → `pinned`, `main` → `latest`) and the `agent_tools_tag_*` keys, and
@@ -128,7 +139,7 @@ template's *root* `AGENTS.md` over yours (0.3.x) — and since 0.4.0 that file i
 the template's maintainer guide, not the contract.
 
 Local edits to `agent-tools/` and `AGENTS.md` are overwritten on update — that
-is the point. Per-event behaviour belongs in `event.yaml`, `EVENT.md` and
+is the point. Per-workspace behaviour belongs in `workspace.yaml`, `WORKSPACE.md` and
 `memory/`.
 
 ## Design notes

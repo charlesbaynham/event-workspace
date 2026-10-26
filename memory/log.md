@@ -1,9 +1,13 @@
 # Memory log (append-only)
 
 <!--
-Sessions APPEND terse observations here as work happens — never edit or reorder
-existing lines. The memory-compact skill folds this log into digest.md and
-truncates it. Git history preserves everything.
+Sessions APPEND terse observations here — never edit or reorder existing
+lines — when a transcript won't carry them: unattended sessions (scheduled
+tasks, webhook wakes), sessions the nightly pass can't list (local CLI, Codex,
+a co-user's own account), and anything settled only inside tool work. The
+memory-compact skill's filing pass files these into memory/notes/ and the
+digest, then removes exactly the lines it filed. Git history preserves
+everything.
 
 Format, one observation per line:
 
@@ -62,3 +66,16 @@ Rules for writers:
 - [2026-09-20] DECISION: no backwards compatibility before 1.0.0 — Charles's call, made while reviewing the pinned/latest rename: the legacy `tags`/`main` track values, the `agent_tools_tag_*` keys and update.sh's tag-check.sh→version-check.sh hook repointing were all dropped rather than shimmed. A workspace on 0.5.0 edits event.yaml and its two hook files once; `tags` is now read as a branch name and simply fails to fetch (update.sh names the track in that error).
 - [2026-09-20] DECISION: until 1.0.0 (coming, not here yet) a breaking change rides in a MINOR with a "To do by hand" section in the changelog entry, semver's major-version-zero rule; from 1.0.0 the same change is a major. Written into the bump-version skill, the changelog preamble and the maintainer guide, so it is not re-litigated each release.
 - [2026-10-04] STATE: gs.py set now refuses data that doesn't fit the named range (single cell = one value unless --allow-expand; explicit A1:C3 bounds enforced; open ranges unlimited), checked before auth via pure check_write_shape(). After the Jobs!E43 --csv free-text fan-out (wedding, 27 Sep + 4 Oct). VERSION 0.9.0 -> 0.10.0 (minor: anchor-cell block writes now need the full range or --allow-expand; Charles chose minor). Branch gs-csv-guard.
+- [2026-10-21] DECISION: memory moves to a nightly filing pass modelled on Anthropic's claude.ai memory (background pass after the turn, [stated] provenance test, one file per subject with frontmatter, listing injected instead of content) — Charles's call after comparing the two; working sessions stop logging routinely.
+- [2026-10-21] DECISION: the pass reads only sessions launched with the workspace's own repository in scope (session_context.sources), never the owner's other sessions — Charles, explicitly: lots of unrelated sessions.
+- [2026-10-21] DECISION: models — top-level scheduled session Haiku (select + dispatch only), per-session reviewers Haiku, one Opus filer that edits and commits. Charles's call ("Haiku is very good these days").
+- [2026-10-21] LEARNED: list_sessions (mine) and list_events read every cloud session on the account, archived ones too, but sessions started by scheduled tasks or webhooks (cse_ ids) are not listed — git and log.md are their only record. Typed human messages are user events carrying client_platform with string content; thinking is redacted.
+- [2026-10-21] LEARNED: new skills/agents reach existing workspaces only at birth (.claude/skills and .claude/agents symlinks are clone-only), so the nightly pass lives inside the existing memory-compact skill, with general-purpose subagents and a model parameter instead of new agent definitions.
+- [2026-10-21] LEARNED: wedding-workspace compactions ran on 105–143 entries a day and once had a concurrent merge re-add 111 folded lines — why trim-log removes exactly the filed lines and places the baseline where the filed block began.
+- [2026-10-21] STATE: Opus filer dry run on a scratch wedding-workspace copy: frontmatter on all 25 notes, 83 log entries filed, digest to 500 words, sandra-payments.md split out of money.md, check clean; its procedure feedback folded into filing.md (gradual clean-up, updated-date rule, dirty-tree guard, dedupe by key identifier) and check (long-note warning, digest count excludes Tools & resources).
+- [2026-10-22] DECISION: sensitive details (health incl. allergies/dietary, ID/card/account numbers, sexual/criminal/abuse/self-harm/immigration, guests private money/contacts/RSVP) are stored in memory tagged [sensitive], not excluded — Charles: the repo is private and secure. Credentials and instructions to the agent stay out.
+- [2026-10-22] DECISION: release as 1.0.0, not 0.12.0 — Charles: a change to the structure of already-stored memory in consumers is a major, and every major ships a migration (agent-tools/skills/migrate/<X.0.0>.md) that the upgrade procedure invokes; rule written into AGENTS.md (Versioning) and the bump-version skill.
+- [2026-10-22] DECISION: automations get their own setup skill (Charles): audits/creates/repairs the nightly memory pass and the WhatsApp wake (delegating to whatsapp/setup.md §11), walks the owner through browser-only steps, records ids in memory/notes/automations.md; memory-compact no longer creates its own task; the 1.0.0 migration calls setup.
+- [2026-10-22] STATE: 1.0.0 migration tested end to end on a scratch wedding copy (25 notes frontmatter, 78 [sensitive] tags in 13 notes, digest 795→493 words, migrated: 1.0.0); its feedback folded in: own-session exclusion from CLAUDE_CODE_REMOTE_SESSION_ID, paging footers from the oldest page, unreviewed sessions go to retry, alias check, note-level sensitive: true and tag placement, header refresh step in the migration, persistent-session triggers recreated not converted.
+- [2026-10-22] DECISION: template generalised from event-workspace to memory-workspace (Charles): events stay first-class, projects-with-a-team and open-ended life admin equally supported; WhatsApp kept and optional. event.yaml → workspace.yaml, EVENT.md → WORKSPACE.md, folded into the unreleased 1.0.0 with a migration step 0; lib.sh/memory.py/render.sh/load-memory.sh fall back to the old names until migrated (the one shim, to be dropped in a later major).
+- [2026-10-22] LEARNED: example WhatsApp placeholders (EventBot, mcp__Event_Whatsapp__) kept on purpose — setup/SKILL.md detects an unconfigured bot by them, and .claude/settings.json ships matching allow rules that ONBOARDING replaces.

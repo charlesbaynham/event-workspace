@@ -3,7 +3,7 @@
 # Commit everything and get it onto the default branch, safely, from a session that
 # may be racing other sessions.
 #
-# Webhook-fired sessions are no longer rare and no longer serial: two guests
+# Webhook-fired sessions are no longer rare and no longer serial: two people
 # texting at once means two containers editing memory/ and pushing to main
 # within seconds of each other. Both append to memory/log.md, so both conflict.
 # A session that hits "rejected — non-fast-forward" and gives up has recorded
@@ -24,7 +24,7 @@ ATTEMPTS=5
 cd "$ROOT" || exit 1
 
 if in_template; then
-  echo "sync-push: no event.yaml — this is the template, not a workspace. Use a branch and a pull request here." >&2
+  echo "sync-push: no workspace.yaml — this is the template, not a workspace. Use a branch and a pull request here." >&2
   exit 1
 fi
 

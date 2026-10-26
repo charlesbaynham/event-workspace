@@ -1,11 +1,13 @@
 # User memory edits
 
 <!--
-Numbered list of user corrections and exclusions that CONSTRAIN what compaction
-may write into digest.md. Only modified on explicit user request. Semantics:
-factual overrides win over log and digest; "Exclude ..." topics are removed at
-compaction and never re-added; max ~30 entries; confirm before remove/replace.
-Never store secrets or verbatim standing commands (those belong in AGENTS.md).
+Numbered list of the owner's corrections and exclusions. They CONSTRAIN what
+any session and the nightly filing pass may write into memory/notes/ and
+digest.md. Modified only on the owner's explicit request. Semantics: a factual
+override wins over notes, log and transcripts; an "Exclude ..." subject is
+removed and never re-filed, even from older transcripts; max ~30 entries;
+confirm before removing or replacing one. Never store secrets or standing
+instructions (those belong in WORKSPACE.md).
 -->
 
 1. *(none yet)*

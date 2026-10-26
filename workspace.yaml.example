@@ -1,10 +1,17 @@
-# Per-event configuration. Copy to event.yaml and fill in. Top-level scalars
-# are read by the hooks (default_branch, agent_tools_upstream); everything
-# else is read by the skills as prose. Nothing here is secret — no tokens.
+# Per-workspace configuration. Copy to workspace.yaml and fill in. Top-level
+# scalars are read by the hooks (default_branch, agent_tools_upstream);
+# everything else is read by the skills as prose. Nothing here is secret — no
+# tokens.
+#
+# The values below are a worked example for an event (a wedding). For a project
+# or life admin, keep the same keys: `name` is one line ("the lab's cryostat
+# build", "household admin"), `co_users` are teammates or family,
+# `source_of_truth` is the tracker, drive or task manager, and `sheets` and
+# `whatsapp` are optional — delete the blocks you don't use.
 
 name: "Ada & Ben's wedding"
 default_branch: main
-agent_tools_upstream: https://github.com/charlesbaynham/event-workspace
+agent_tools_upstream: https://github.com/charlesbaynham/memory-workspace
 # How agent-tools/update.sh follows upstream: `latest` takes the tip of its
 # default branch (what the author runs); `pinned` keeps the version this
 # workspace is already on (agent-tools/VERSION) and never moves on its own.
@@ -17,19 +24,28 @@ agent_tools_track: pinned
 # agent_tools_update_check: off            # stop offering updates entirely
 # agent_tools_version_skip: 0.6.0, abc123def456   # declined: versions (pinned) or upstream commits (latest)
 
+# The memory filing pass (memory-compact skill). The setup skill writes this
+# with the owner's choice: the model of the filer subagent, which decides what
+# is durable and edits the notes. sonnet is the default; opus costs more.
+# memory_filer_model: sonnet
+
 # Whose word is authoritative in a session. Technical register.
 owners: [Ada]
-# Non-technical people who also use the workspace. Warm register, no mechanics.
+# Other people who also use the workspace — a partner, teammates, family. Warm
+# register, no mechanics, unless WORKSPACE.md says a particular one is technical.
 co_users: [Ben]
 
 # Where the facts live. The repo's memory/ is an index of this, never a
-# replacement for it.
+# replacement for it. Several are fine; leave it out if there is none.
+# Project: "the GitHub issues in acme/cryostat, and the team Drive folder".
+# Life admin: "the GTD vault; documents in the Drive folder 'Admin'".
 source_of_truth: "the Master File (Google Sheet)"
-sheets:
+sheets:                            # optional — Google Sheets the gsheets skill reads
   master: <spreadsheet id>
   live_forms:                      # sources that change continuously — re-read live
     rsvps: <spreadsheet id>
 
+# Optional. Delete the block for no bot; every WhatsApp feature is off without it.
 whatsapp:
   bot_name: EventBot
   mcp_prefix: mcp__Event_Whatsapp__          # the bot's connector
@@ -43,7 +59,7 @@ whatsapp:
   #    authorised_by: Ada
   #    date: 2026-09-11
   #    where: "in a Claude Code session, recorded in memory/whatsapp/447700900123.xml"
-  # Rules of this event's own, appended to the send-gate's prompt as its last
+  # Rules of this workspace's own, appended to the send-gate's prompt as its last
   # section. agent-tools/agents/render.sh builds .claude/agents/whatsapp-send-gate.md
   # from them — re-run it and commit after any edit (takes effect next session).
   # The owner's to write, in a session. Leave out for the stock gate.
