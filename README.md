@@ -44,9 +44,10 @@ repository never carries it.
 
 | Piece | What it does |
 |---|---|
-| **Memory** (`memory/`, `memory-compact` skill, hooks) | A small digest injected into every session, one note per subject indexed at session start, user corrections, and a nightly filing pass: a scheduled task that reads the sessions launched with this repository in scope and files what is durable into the notes. |
+| **Memory** (`memory/`, `memory-compact` skill, hooks) | A small digest injected into every session, one note per subject indexed at session start, user corrections, and an append-only log each session writes to as it works. A filing pass — a scheduled task, nightly by default — files what is durable from the log and the git history into the notes and the digest (and reads session transcripts too, when the session running it can list them). |
 | **Session hygiene** (`agent-tools/hooks/git-sync.sh`, `agent-tools/sync-push.sh`) | Repairs the shallow-snapshot divergence cloud containers show, keeps sessions on the default branch, and pushes with rebase-and-retry so two concurrent sessions don't lose each other's work. |
 | **WhatsApp**, optional (`whatsapp` skill, `whatsapp-send-gate` agent) | A dedicated bot number answers the people involved — an event's guests, a project's team. Every reply is drafted, recorded, then judged by an isolated subagent that sees only the transcript, the draft, and an identity check. Anything about another person, anyone's money, or anything embarrassing waits for the owner. One thread file per contact is the durable record. Webhook-driven: each message wakes a fresh session. Off unless `workspace.yaml` has a `whatsapp:` block. |
+| **`setup` and `migrate` skills** | `setup` creates and audits the scheduled tasks the workspace runs on (the filing pass, the WhatsApp routine). `migrate` reshapes stored memory when an engine update crosses a major version. |
 | **gsheets** skill | Read and write a Google Sheet in place via a service account. Ships no key. |
 | **Two registers** | A technical owner and co-users (a partner, teammates, family) get different voices, the same facts. |
 | **Classifier rules** (`automode.json`, `agent-tools/automode/`) | Auto-mode rules kept in the repo, installed into the environment by a script the setup script calls, with a session-start drift check. A repo cannot ship these directly; see the ops notes. |
@@ -57,13 +58,20 @@ repository never carries it.
 `ONBOARDING.md` walks an agent through all of this. If you would rather do it
 yourself:
 
-1. **Use this template** (GitHub → *Use this template*) into a private repo.
+1. Clone this repository, `rm -rf .git && git init -b main`, and push it to a
+   new private repo of your own (nothing is ever merged back from upstream;
+   `update.sh` vendors the engine instead).
 2. Copy `workspace.yaml.example` → `workspace.yaml` and `WORKSPACE.md.example` → `WORKSPACE.md`;
    fill them in. Everything about *your* workspace goes in those two files and in
    `memory/`; never in `agent-tools/`. Then `cp agent-tools/AGENTS.md AGENTS.md`
-   — the contract replaces the template's maintainer guide — and empty
-   `memory/log.md` back to its header: what is there is the template's own
-   history.
+   — the contract replaces the template's maintainer guide. Reset
+   `memory/log.md`, `digest.md`, `user-edits.md` and `filing-state.md` to their
+   empty forms (what is there is the template's own history; `ONBOARDING.md`
+   step 5 says exactly what to keep), trim the maintainer note out of
+   `CLAUDE.md` (keep its three `@` imports), and fix or remove the example
+   WhatsApp allow rules in `.claude/settings.json`. Delete `ONBOARDING.md`,
+   `docs/spin-out-plan.md` and the template-only `bump-version` skill
+   (`.claude/skills/` and `.agents/skills/`).
 3. If the source of truth is a Google Sheet: run
    `agent-tools/skills/gsheets/scripts/bootstrap_gcp.sh` once in Cloud Shell,
    put the key it prints in the agent environment as
@@ -76,7 +84,7 @@ yourself:
    `agent-tools/automode/install.sh` from the cloud environment's setup script
    (see `docs/agent-ops-notes.md` for why it has to be there).
 6. Open a session and say "set up the automations": the `setup` skill creates
-   the nightly memory pass (the scheduled task that files what sessions learn)
+   the memory filing pass (the scheduled task that files what sessions learn)
    and, once WhatsApp is configured, checks its webhook routine. From then on the hooks put each session on the default branch and
    print the memory index; `CLAUDE.md` imports the contract, `WORKSPACE.md` and the
    digest.
@@ -93,7 +101,7 @@ contract, `agent-tools/AGENTS.md`, which `update.sh` reinstalls as your root
 ```bash
 agent-tools/update.sh --check    # installed vs upstream, changes nothing
 agent-tools/update.sh            # pull upstream over agent-tools/, reinstall AGENTS.md
-git diff && git commit -am "agent-tools: 0.6.0"
+git diff && git commit -am "agent-tools: X.Y.Z"
 ```
 
 What "upstream" means is your choice, recorded as `agent_tools_track` in
@@ -111,10 +119,12 @@ What "upstream" means is your choice, recorded as `agent_tools_track` in
   asked once. Taking it is `update.sh --accept`.
 
   Versions follow semantic versioning: a patch is a fix, a minor adds a feature
-  or changes behaviour you may want to read about, a major changes something
-  you have to act on (`workspace.yaml` keys, file layout, the skill's section
-  numbers) — and says so under **To do by hand** in the changelog. Pick this
-  track if you would rather not be surprised.
+  or changes behaviour you may want to read about, a major changes the shape
+  of your stored memory or something else you have to act on (`workspace.yaml`
+  keys, file layout). Every major ships a migration, which the `migrate` skill
+  runs after `update.sh`; anything it can't do is listed under **To do by
+  hand** in the changelog. Pick this track if you would rather not be
+  surprised.
 
 Nothing reads git tags: a version is the text in `agent-tools/VERSION`, on
 whichever branch you follow. `update.sh <tag|branch|full sha>` still overrides
@@ -145,6 +155,7 @@ is the point. Per-workspace behaviour belongs in `workspace.yaml`, `WORKSPACE.md
 ## Design notes
 
 - [docs/spin-out-plan.md](docs/spin-out-plan.md) — what was extracted, from
-  where, and why this shape rather than a plugin or a submodule.
+  where, and why this shape rather than a plugin or a submodule. Historical:
+  written when this was `event-workspace`.
 - [docs/agent-ops-notes.md](docs/agent-ops-notes.md) — things learned running
   agents in ephemeral cloud containers: monitors, auto-mode, shallow clones.

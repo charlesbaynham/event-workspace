@@ -1,5 +1,13 @@
 # event-workspace — spin-out plan
 
+> **Historical.** This is the plan as written and executed in September 2026,
+> when the template was called `event-workspace`. Since then it was renamed
+> `memory-workspace` and generalised beyond events (1.0.0): `event.yaml` and
+> `EVENT.md` are now `workspace.yaml` and `WORKSPACE.md`, the shipped contract
+> lives in `agent-tools/AGENTS.md`, and releases are the text of
+> `agent-tools/VERSION` rather than git tags. The README and
+> `agent-tools/CHANGELOG.md` describe the current shape.
+
 **Status: executed 2026-09-20 (steps 1–4 below); step 5 is open as a job card in ha-workspace.** Two questions: *what* comes out of the wedding
 workspace (and the House Absolute workspace) into a shareable repo, and *how*
 it gets to other people — and back into the wedding workspace so we dogfood it.
@@ -80,7 +88,7 @@ co_users: [Gaby]               # non-technical users; warm register, no mechanic
 default_branch: main
 source_of_truth: "Wedding Master File (Google Sheet)"   # or "this repo"
 sheets:
-  master: 1HsHuSfJ46Yo_...
+  master: <sheet id>
   live_forms: [..]
 whatsapp:
   mcp_prefix: mcp__Charlesbot_Whatsapp__     # the bot's server, never the personal one
