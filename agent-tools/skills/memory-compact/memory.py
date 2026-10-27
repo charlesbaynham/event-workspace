@@ -336,6 +336,13 @@ def cmd_trim_log(args):
 def load_ccr(path):
     """The {"ccr": {...}} payload inside a saved tool result, wrapper text and all."""
     text = Path(path).read_text(encoding="utf-8", errors="replace")
+    # A result saved as .json is a list of content blocks; the payload sits, escaped, in their text.
+    try:
+        blocks = json.loads(text)
+        if isinstance(blocks, list):
+            text = "\n".join(b.get("text", "") for b in blocks if isinstance(b, dict))
+    except ValueError:
+        pass
     i = text.find('{"ccr"')
     if i < 0:
         i = text.find("{")

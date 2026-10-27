@@ -128,13 +128,18 @@ it: that loses its run history.
 `update_trigger` `model`. The reviewers always run on Haiku, and the filer
 uses `memory_filer_model`. Never change a task's model without the owner.
 
+**A task created by an agent has no repository attached.** `create_trigger`
+from a session stores no source, so its runs start in an empty directory and
+can't clone the workspace. After creating it, have the owner open it in the
+browser (claude.ai/code/routines/<id>) and add this repository; then prove it.
+
 **Prove it.** Run `fire_trigger` once. Then read the fired session (`get_session`,
-`list_events`; its id is in the trigger's `last_run`) and check three things:
-it found `list_sessions` (if not, the pass fell back to git and the log, so
-tell the owner, because transcripts are the main input); it selected only this
-repository's sessions; and its commit, if it had anything to commit, landed
-on the default branch. A pass that finds nothing new and stops is also a
-success.
+`list_events`; its id is in the trigger's `last_run`) and check two things:
+it ran in this repository on the default branch, and its commit, if it had
+anything to commit, landed there. A pass that finds nothing new and stops is
+also a success. Expect it to report that it could not list sessions: a
+scheduled task's session isn't given `list_sessions`, so the pass files from
+the log and git, and that is the designed path.
 
 ## 4. The WhatsApp wake
 

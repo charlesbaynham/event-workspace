@@ -1,22 +1,22 @@
 ---
 name: memory-compact
-description: The memory filing pass — read the sessions launched with this workspace's repository in scope since the last pass, plus git history and memory/log.md, and file what is durable into memory/notes/ and the digest. Run by a scheduled task, nightly or as often as hourly (a Haiku session selects and dispatches, Haiku subagents review one session each, and only when there is something durable a filer subagent — Sonnet by default — files and commits). Also use when the owner asks to compact, refresh or update memory. (Creating or repairing the nightly task is the setup skill's job.)
+description: The memory filing pass — read memory/log.md and the git history since the last pass (plus the transcripts of sessions launched with this repository in scope, when the session running it can list them), and file what is durable into memory/notes/ and the digest. Run by a scheduled task, nightly or as often as hourly (a Haiku session selects and dispatches, Haiku subagents review one session each, and only when there is something durable a filer subagent — Sonnet by default — files and commits). Also use when the owner asks to compact, refresh or update memory. (Creating or repairing the nightly task is the setup skill's job.)
 ---
 
 # The memory filing pass
 
-Working sessions don't stop to file what happens in a conversation; this pass
-does it afterwards, with the whole exchange in view. It reads three things since
-the last pass:
+Working sessions log what they learn as they go; this pass files it. It reads,
+since the last pass:
 
-- **Session transcripts** — every cloud session on the owner's account that was
-  launched with **this repository in scope**. Sessions without it are never
-  read, however related their title looks: the owner runs many unrelated
-  sessions, and none of them belong in this workspace's memory.
-- **Git history** — covers the sessions the listing cannot show (scheduled
-  tasks, webhook wakes), which commit their work and leave log lines.
-- **`memory/log.md`** — what sessions logged because a transcript would not
-  carry it.
+- **`memory/log.md`** — what sessions logged. The main input.
+- **Git history** — what sessions changed and committed.
+- **Session transcripts, when it can** — every cloud session on the owner's
+  account launched with **this repository in scope**. This needs
+  `list_sessions` and `list_events`, which a session started by a scheduled
+  task does not get; a pass run by hand from an interactive session has them.
+  Without them the pass files from the log and git alone, which is the normal
+  case and not a fault. Sessions without this repository in scope are never
+  read, however related their title looks.
 
 Three roles, and the split is the point: **you select and dispatch** (this
 file), **reviewers** read one session each and extract findings
@@ -51,7 +51,8 @@ repository root as `python3 agent-tools/skills/memory-compact/memory.py <cmd>`.
    and `list_events`; load them with ToolSearch
    (`select:mcp__claude-code-remote__list_sessions,mcp__claude-code-remote__list_events`)
    if they are deferred. If they do not exist in this session, skip to step 5
-   and say in your report that transcripts were not read.
+   and say in your report that transcripts were not read. In a scheduled run
+   that is expected.
 
    Call `list_sessions` with `mine: true`, `limit: 20`. **A session is in only
    if one of its `session_context.sources[].git_repository.url` values ends in
