@@ -1,6 +1,6 @@
 ---
 name: bump-version
-description: Release a new engine version from the memory-workspace template — decide major/minor/patch from what changed under agent-tools/ since the last bump, write the CHANGELOG entry, and set VERSION in the same commit. Use when a change to agent-tools/ is ready to ship, when asked to bump/release/cut a version, or when a session is about to commit engine changes without touching VERSION.
+description: Release a new engine version from the memory-workspace template — decide major/minor/patch from what changed under agent-tools/ since the last bump, write the CHANGELOG entry, and set VERSION in the same commit, then check the automatic GitHub release once it merges. Use when a change to agent-tools/ is ready to ship, when asked to bump/release/cut a version, or when a session is about to commit engine changes without touching VERSION.
 ---
 
 # Bumping the engine version
@@ -90,6 +90,15 @@ Same commit as the change itself wherever possible; if the change is already
 committed, one follow-up commit carrying `VERSION` and `CHANGELOG.md` and
 nothing else. Then tell Charles the new version and the headline of the entry.
 
-Tagging is optional — nothing in the update path reads git tags any more.
-A `vX.Y.Z` tag is a readable marker for a release you care about, and it is his
-to push.
+## 5. Check the release once it merges
+
+The GitHub release is automatic (AGENTS.md, "Versioning"):
+`.github/workflows/release.yml` sees a `VERSION` with no matching tag on
+`main`, tags the commit that changed it, and publishes the changelog entry
+plus a zip of the repository. It finds the entry by its `## X.Y.Z — ` heading,
+so the heading and `VERSION` must match exactly.
+
+After the bump merges, check `list_releases` for `vX.Y.Z`. If it is missing,
+read the Release workflow's run on `main` and fix the cause. Don't create the
+release by hand: a cloud session can't anyway, because the GitHub proxy
+refuses it.

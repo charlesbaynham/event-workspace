@@ -222,7 +222,7 @@ apply (there is no bot register if there is no bot) and keep the headings that a
 empty but will fill up — stock answers, things that always go to the owner. Do
 not invent facts: an empty section with a heading beats a plausible guess.
 
-**`CLAUDE.md`** — it ships with a parenthetical about the template's maintainer
+**`CLAUDE.md`** — it ships with a parenthetical and a release note about the template's maintainer
 guide, which is now irrelevant here. Trim it to a line or two saying the
 contract, the workspace's rules and the digest are imported so they are present from
 the first turn. Leave the three `@` imports exactly as they are, and note what
@@ -285,8 +285,10 @@ diff). Link `docs/agent-ops-notes.md`, which the contract also cites.
 `docs/spin-out-plan.md` is the template's own design history and nothing in a
 workspace refers to it — delete it unless they want to keep it. Delete the
 `bump-version` skill too (`.claude/skills/bump-version/`,
-`.agents/skills/bump-version/`): releasing engine versions is the template's
-job, and a workspace only ever receives them.
+`.agents/skills/bump-version/`), and the release workflow
+(`.github/workflows/release.yml`; remove `.github/` if that leaves it empty):
+releasing engine versions is the template's job, and a workspace only ever
+receives them.
 
 ## 7. Check it actually looks like a workspace
 
@@ -312,6 +314,7 @@ grep -rn '^@' memory/*.md memory/notes/      # nothing. (memory/whatsapp/CLAUDE.
                                              #  deliberate import and is not in that set)
 ls -l .claude/skills .claude/agents          # symlinks, relative, resolving into agent-tools/;
                                              #  no bump-version/ left (step 6)
+test ! -e .github/workflows/release.yml      # gone (step 6), or the workspace cuts releases
 ```
 
 Fix anything that complains beyond those expected messages. A hook that fails

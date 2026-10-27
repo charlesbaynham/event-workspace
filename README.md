@@ -70,8 +70,9 @@ yourself:
    step 5 says exactly what to keep), trim the maintainer note out of
    `CLAUDE.md` (keep its three `@` imports), and fix or remove the example
    WhatsApp allow rules in `.claude/settings.json`. Delete `ONBOARDING.md`,
-   `docs/spin-out-plan.md` and the template-only `bump-version` skill
-   (`.claude/skills/` and `.agents/skills/`).
+   `docs/spin-out-plan.md`, the template-only `bump-version` skill
+   (`.claude/skills/` and `.agents/skills/`) and the release workflow
+   (`.github/workflows/release.yml`).
 3. If the source of truth is a Google Sheet: run
    `agent-tools/skills/gsheets/scripts/bootstrap_gcp.sh` once in Cloud Shell,
    put the key it prints in the agent environment as
