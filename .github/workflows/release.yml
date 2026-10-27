@@ -1,0 +1,59 @@
+# Publishes a GitHub release for every engine version.
+#
+# On each push to main, read agent-tools/VERSION. If no tag v<VERSION> exists
+# yet, the version has changed since the last release: tag the commit that
+# last changed VERSION, use that version's CHANGELOG entry as the notes (the
+# commit message if there is no entry), and attach a zip of the repository at
+# that commit. Otherwise do nothing.
+#
+# Template only: ONBOARDING.md deletes .github/workflows/release.yml at birth.
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Release if VERSION has no tag yet
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          v=$(tr -d '[:space:]' < agent-tools/VERSION)
+          tag="v$v"
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null; then
+            echo "$tag already exists; nothing to release."
+            exit 0
+          fi
+
+          sha=$(git log -1 --format=%H -- agent-tools/VERSION)
+          echo "Releasing $tag at $sha (last commit to change agent-tools/VERSION)."
+
+          git show "$sha:agent-tools/CHANGELOG.md" \
+            | awk -v v="$v" 'index($0, "## " v " ") == 1 {f=1; next} /^## / && f {exit} f' \
+            > notes.md
+          if ! grep -q '[^[:space:]]' notes.md; then
+            echo "No CHANGELOG entry for $v; using the commit message."
+            git log -1 --format=%B "$sha" > notes.md
+          fi
+
+          name="${GITHUB_REPOSITORY#*/}-$v"
+          git archive --format=zip --prefix="$name/" -o "$name.zip" "$sha"
+
+          gh release create "$tag" "$name.zip" \
+            --target "$sha" --title "$v" --notes-file notes.md

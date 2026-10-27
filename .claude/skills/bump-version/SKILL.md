@@ -1,6 +1,6 @@
 ---
 name: bump-version
-description: Release a new engine version from the memory-workspace template — decide major/minor/patch from what changed under agent-tools/ since the last bump, write the CHANGELOG entry, and set VERSION in the same commit, then publish the GitHub release once it merges. Use when a change to agent-tools/ is ready to ship, when asked to bump/release/cut a version, or when a session is about to commit engine changes without touching VERSION.
+description: Release a new engine version from the memory-workspace template — decide major/minor/patch from what changed under agent-tools/ since the last bump, write the CHANGELOG entry, and set VERSION in the same commit, then check the automatic GitHub release once it merges. Use when a change to agent-tools/ is ready to ship, when asked to bump/release/cut a version, or when a session is about to commit engine changes without touching VERSION.
 ---
 
 # Bumping the engine version
@@ -90,23 +90,15 @@ Same commit as the change itself wherever possible; if the change is already
 committed, one follow-up commit carrying `VERSION` and `CHANGELOG.md` and
 nothing else. Then tell Charles the new version and the headline of the entry.
 
-## 5. Publish a GitHub release once it merges
+## 5. Check the release once it merges
 
-Every bump gets a GitHub release (AGENTS.md, "Versioning"). Nothing in the
-update path reads tags or releases; this is for people browsing the
-repository. Do it after the bump has merged to `main`, against the merge
-commit, with the changelog entry as the notes:
+The GitHub release is automatic (AGENTS.md, "Versioning"):
+`.github/workflows/release.yml` sees a `VERSION` with no matching tag on
+`main`, tags the commit that changed it, and publishes the changelog entry
+plus a zip of the repository. It finds the entry by its `## X.Y.Z — ` heading,
+so the heading and `VERSION` must match exactly.
 
-```bash
-v=X.Y.Z
-git fetch origin main && git checkout origin/main
-awk -v v="$v" '$0 ~ "^## "v" " {f=1; next} /^## / && f {exit} f' \
-  agent-tools/CHANGELOG.md > /tmp/notes-$v.md
-gh release create "v$v" --target "$(git rev-parse HEAD)" \
-  --title "$v" --notes-file /tmp/notes-$v.md
-```
-
-A cloud session cannot run this: the GitHub proxy refuses to create releases,
-and the GitHub MCP tools have no create-release call. When the bump PR
-merges, check `list_releases` and, if `vX.Y.Z` is missing, give Charles the
-block above with the version filled in for him to run locally.
+After the bump merges, check `list_releases` for `vX.Y.Z`. If it is missing,
+read the Release workflow's run on `main` and fix the cause. Don't create the
+release by hand: a cloud session can't anyway, because the GitHub proxy
+refuses it.

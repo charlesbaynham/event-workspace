@@ -122,13 +122,16 @@ Consumers on `agent_tools_track: pinned` compare the text of
 what they are shown when deciding. Consumers on `latest` get every push, so
 `main` should always be installable.
 
-**Every version bump also gets a GitHub release**, once the bump has merged to
-`main`: tag `vX.Y.Z` on the merge commit, title `X.Y.Z`, notes = that
-version's changelog entry. Nothing in the update path reads it; it is how
-people browsing the repository see what shipped. Cloud sessions cannot create
-releases (the GitHub proxy refuses them), so when the bump PR merges, give
-Charles the command from the `bump-version` skill to run, and don't call the
-release done until it exists.
+**Every version bump also gets a GitHub release, automatically.**
+`.github/workflows/release.yml` runs on every push to `main`: when no `vX.Y.Z`
+tag exists for the number in `agent-tools/VERSION`, it tags the commit that
+last changed that file, uses the version's changelog entry as the notes (the
+commit message if there is none), and attaches a zip of the repository at
+that commit. Nothing in the update path reads releases; they are for people
+browsing the repository. So a bump needs a changelog heading that matches
+`VERSION` exactly, and once it merges, check `list_releases`: if the release
+is missing, the workflow run says why. The workflow is template-only;
+`ONBOARDING.md` deletes it at birth.
 
 ## Memory here
 
