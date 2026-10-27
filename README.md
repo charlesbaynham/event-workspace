@@ -159,3 +159,7 @@ is the point. Per-workspace behaviour belongs in `workspace.yaml`, `WORKSPACE.md
   written when this was `event-workspace`.
 - [docs/agent-ops-notes.md](docs/agent-ops-notes.md) — things learned running
   agents in ephemeral cloud containers: monitors, auto-mode, shallow clones.
+
+## Licence
+
+MIT — see [LICENSE](LICENSE).

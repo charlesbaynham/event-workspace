@@ -47,11 +47,11 @@ config surface where wedding facts are hard-coded, and writing the template.
    procedure (§10), the routine wiring (`setup.md`), the poll rule (§15), and
    the isolated `whatsapp-send-gate` subagent. This is what people are asking
    for. It is also the most wedding-entangled file: §13 (planner chat), §14
-   (Gaby), the FAQs, the register ("Beep boop"), and every example are specific.
+   (a gate-exempt number), the FAQs, the register ("Beep boop"), and every example are specific.
    The engine/config split for it is in §1.3.
 4. **The gsheets skill** (`gs.py` CLI + library, recipes, `bootstrap_gcp.sh`).
    Generic and excellent — *minus its bundled service-account key* (§1.4).
-5. **The two-register rule** (Charles vs Gaby): generalises to "the workspace
+5. **The two-register rule** (technical owner vs partner): generalises to "the workspace
    has a technical owner and non-technical co-users; detect and match". Worth
    keeping as a template section with placeholders.
 6. **Multi-agent support**: the `.claude/` symlink + `.agents/` shim pattern
@@ -82,9 +82,9 @@ Every place the engine names a wedding fact becomes a field in one file,
 `event.yaml` at the repo root, read by the skills and hooks:
 
 ```yaml
-name: "Charles & Gaby's wedding"
+name: "Charles's wedding"
 owners: [Charles]              # whose word is authoritative in-session
-co_users: [Gaby]               # non-technical users; warm register, no mechanics
+co_users: [Partner]            # non-technical users; warm register, no mechanics
 default_branch: main
 source_of_truth: "Wedding Master File (Google Sheet)"   # or "this repo"
 sheets:
@@ -97,7 +97,7 @@ whatsapp:
   register: "knowingly a bot, short, dry; Spanish in, Spanish out"
   identity_roster: "Guests tab + Guest roster tab of the master file"
   gate_exempt: [447700900123]                # §14-style exemptions, each with provenance
-  read_only_chats: ["Gaby and Charles wedding planning"]
+  read_only_chats: ["Wedding planning chat"]
   routine_name: "CharlesBot WhatsApp webhook"
 ```
 
@@ -137,7 +137,7 @@ platform-agnostic.
   repo should never be forked or filter-branched into the public one — the key
   is in its history. Fresh history only.)
 - Every phone number, name, JID, trigger id, subscription id, Sheet id, and
-  every dated incident in `SKILL.md`, `gaby.md`, `FAQs.md`, the send-gate prompt
+  every dated incident in `SKILL.md`, the co-user notes, `FAQs.md`, the send-gate prompt
   ("your brother's group…"), and `.claude/settings.json`. The gate prompt's
   examples get neutral replacements; the "explain a guardrail by what it does,
   never by the episode" rule is itself the reason the incident stories stay
