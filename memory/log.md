@@ -1,13 +1,10 @@
 # Memory log (append-only)
 
 <!--
-Sessions APPEND terse observations here — never edit or reorder existing
-lines — when a transcript won't carry them: unattended sessions (scheduled
-tasks, webhook wakes), sessions the nightly pass can't list (local CLI, Codex,
-a co-user's own account), and anything settled only inside tool work. The
-memory-compact skill's filing pass files these into memory/notes/ and the
-digest, then removes exactly the lines it filed. Git history preserves
-everything.
+Every session APPENDS terse observations here as it works — never edit or
+reorder existing lines. The memory-compact skill's filing pass files them into
+memory/notes/ and the digest, then removes exactly the lines it filed. Git
+history preserves everything.
 
 Format, one observation per line:
 
@@ -80,3 +77,6 @@ Rules for writers:
 - [2026-10-22] DECISION: template generalised from event-workspace to memory-workspace (Charles): events stay first-class, projects-with-a-team and open-ended life admin equally supported; WhatsApp kept and optional. event.yaml → workspace.yaml, EVENT.md → WORKSPACE.md, folded into the unreleased 1.0.0 with a migration step 0; lib.sh/memory.py/render.sh/load-memory.sh fall back to the old names until migrated (the one shim, to be dropped in a later major).
 - [2026-10-22] LEARNED: example WhatsApp placeholders (EventBot, mcp__Event_Whatsapp__) kept on purpose — setup/SKILL.md detects an unconfigured bot by them, and .claude/settings.json ships matching allow rules that ONBOARDING replaces.
 - [2026-10-26] DECISION: maintainer guide + bump-version amended (Charles): migrations may change the workspace's own files (workspace.yaml, WORKSPACE.md, CLAUDE.md imports) besides memory/; one expiring shim exception — a fallback the engine needs to run the migration that renames it, removed in the next major (1.0.0's event.yaml/EVENT.md fallback goes in 2.0.0).
+- [2026-10-27] DECISION: 1.1.0 restores log-as-you-go for every session; transcript reading in the filing pass becomes opportunistic. Reason: scheduled-task sessions get no list_sessions/list_events (ToolSearch finds nothing), so 1.0.0's 'sessions needn't log' lost interactive sessions' findings; persistent-session and dispatcher workarounds were costly or cluttered (Charles: 'the UX is rubbish').
+- [2026-10-27] LEARNED: create_trigger from an agent session stores no repo source; the fired session can't add_repo or clone. The owner must attach the repo in the browser.
+- [2026-10-27] STATE: memory.py load_ccr now unwraps .json-saved tool results (list of content blocks); before, sessions() selected 0.

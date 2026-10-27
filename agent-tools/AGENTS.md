@@ -11,9 +11,9 @@ git repo.
 That inverts the usual relationship: in most repos the code is the point and
 the notes are a by-product. **Here the notes are the point.** A session that
 learns something and leaves no trace has lost it, because the container it
-learned it in is destroyed at the end of the session. In the owner's cloud
-sessions the transcript is that trace, and a nightly pass files it; anywhere
-else, write it down (see "Writing memory").
+learned it in is destroyed at the end of the session. So every session writes
+down what it learns as it goes (see "Writing memory"), and a scheduled pass
+files it.
 
 The *work* itself — spreadsheets, documents, whatever a task actually produces —
 happens wherever it belongs (a Sheet, a Drive folder, a cloned repo). What
@@ -78,17 +78,19 @@ This repository carries the workspace's memory across sessions in `memory/`:
   covers. **`agent-tools/hooks/memory-check.sh` prints an index of them at
   `SessionStart`** (path, aliases, description): that index is how you know
   what memory holds without loading it.
-- `memory/log.md` — append-only log for what a transcript won't carry (below).
+- `memory/log.md` — append-only log every session writes to as it works (below).
 - `memory/user-edits.md` — the owner's corrections and exclusions. They
   constrain every write to memory.
 - `memory/filing-state.md` — when the nightly filing pass last ran.
 
 **A filing pass keeps it current**, nightly by default or as often as hourly.
-The `memory-compact` skill, run by a scheduled task, reads every session that was launched with this repository
-in scope since the last pass — what the owner typed, what the session replied,
-what its tools did — along with the git history and `memory/log.md`. It files
-what is durable into the notes and the digest. Sessions without this
-repository in scope are never read.
+The `memory-compact` skill, run by a scheduled task, reads `memory/log.md` and
+the git history since the last pass and files what is durable into the notes
+and the digest. When the session running it can also list cloud sessions (one
+run by hand from an interactive session can; a scheduled task's session
+can't), it reads the transcripts of sessions launched with this repository in
+scope too. That is a bonus, never something to rely on: **the log is the
+record.** Sessions without this repository in scope are never read.
 
 You have no memory of previous sessions except these files. If information
 isn't in a note, check the log tail and `git log -p -- memory/` before
@@ -123,17 +125,18 @@ concluding it doesn't exist.
 
 ## Writing memory
 
-**You don't have to stop and file what happens in a conversation.** The
-nightly pass reads the transcript afterwards, with the whole exchange in view.
-Don't interrupt the work to save a passing fact, and don't reason mid-reply
-about whether something is worth remembering. What you do write, during the
+**Write down what you learn, as it happens.** The filing pass works from
+`memory/log.md` and the git history; it cannot count on reading your
+transcript, and anything unwritten dies with the container. One terse line is
+enough, so don't stall a reply deliberating over it, but don't save it for
+the end either: sessions die without warning. What you write, during the
 session:
 
 1. **Explicit asks, now, yourself.** "Remember that…", "note down…",
    "forget…", or a correction of something stored: edit the note (or the
    digest) in this turn, and commit. For a forget, an exclusion or an override
    of a stored fact, also add it to `memory/user-edits.md` (numbered list), so
-   the nightly pass can never re-file it from an older transcript. **Only then
+   the filing pass can never re-file it from older material. **Only then
    confirm.** Confirming a memory action without writing the file is lying
    about system state. Adding needs no ceremony; confirm before removing or
    replacing existing `user-edits.md` entries.
@@ -141,18 +144,18 @@ session:
    — reconciling the money, rewriting the itinerary, a project's design
   decision — editing the note is part
    of the work.
-3. **A log line when the transcript won't carry it.** The pass can only read
-   sessions it can list: cloud sessions on the owner's own account, launched
-   with this repository in scope. Log to `memory/log.md` — one line,
-   `- [YYYY-MM-DD] TYPE: observation`, types in the file's header — when:
-   - **nobody is in the conversation**: a scheduled task, a webhook wake (every
-     WhatsApp session);
-   - **the pass can't see you**: a local CLI session, Codex, or a co-user
-     working from their own account;
-   - **something durable was settled only inside tool work** and never said in
-     a reply.
+3. **A log line for everything else durable**, at the moment it happens, in
+   every kind of session — interactive or unattended, cloud, local CLI or
+   Codex. `memory/log.md`, one line, `- [YYYY-MM-DD] TYPE: observation`, types
+   in the file's header:
+   - every decision, with its reason;
+   - every state change (built, fixed, broke, paid, booked);
+   - every gotcha or hard-won fact that would otherwise be re-discovered;
+   - every open question or deferred task;
+   - every durable identifier (paths, ids, URLs — never secrets).
 
-   When in doubt, log: a redundant line costs one line.
+   Commit and push it with the rest of the work. When in doubt, log: a
+   redundant line costs one line; a missing one costs a later session an hour.
 
 Provenance is not optional anywhere: never record your own suggestion as the
 owner's decision.
@@ -501,8 +504,8 @@ other work.
 
 ## Sensible defaults
 
-- **Leave a trace of what you learn** — the transcript in an owner's cloud
-  session, a log line or a note anywhere else. That is what `memory/` is for.
+- **Leave a trace of what you learn** — a log line or a note, written as you
+  go. That is what `memory/` is for.
 - **Reversible research and note-taking: just do it.** Anything outward-facing
   (sending an email, sharing a document, contacting a supplier) — confirm
   first. WhatsApp replies are the exception, governed by the gate above.

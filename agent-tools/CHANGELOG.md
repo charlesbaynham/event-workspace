@@ -20,6 +20,43 @@ what they have to do about it.
      VERSION together, in the same commit as the change. One `## X.Y.Z — date`
      heading per version; headings are what the tooling parses. -->
 
+## 1.1.0 — 2026-10-27
+
+**Sessions log as they work again; reading transcripts is a bonus, not the
+plan.** 1.0.0 told working sessions they could skip logging because the
+filing pass would read their transcripts. In practice a session started by a
+scheduled task isn't given `list_sessions` / `list_events`, so the pass
+couldn't read them, and interactive sessions' findings were lost. Found on the
+first workspace to migrate.
+
+### Changed
+
+- **The contract (`AGENTS.md`, "Writing memory") asks every session to log
+  durable findings to `memory/log.md` as they happen**: decisions with their
+  reason, state changes, gotchas, open questions, identifiers. This applies to
+  interactive cloud sessions too. It is the 0.x discipline, back.
+- **The filing pass files from `memory/log.md` and git history.** It still
+  reads transcripts when the session running it can list sessions (a pass run
+  by hand from an interactive session), and says so. A scheduled run reporting
+  "transcripts not read" is now the expected path, not a fault.
+- **`setup` skill:** a scheduled task created by an agent has no repository
+  attached; the skill now has the owner add it in the browser before proving
+  the task. Proving it no longer expects `list_sessions`.
+- The `memory/log.md` header text in the 1.0.0 migration and the template seed
+  describe the new rule.
+
+### Fixed
+
+- `memory.py sessions` / `transcript` read a saved tool result that is a JSON
+  list of content blocks (the `.json` form). It used to parse the wrapper and
+  select no sessions.
+
+### To do by hand
+
+- Nothing required. If your `memory/log.md` header still says sessions log
+  only "when a transcript won't carry them", you may replace that sentence
+  with the new header text from the template. It's a comment; nothing parses it.
+
 ## 1.0.0 — 2026-10-22
 
 **Major: memory is stored differently, the configuration files are renamed,

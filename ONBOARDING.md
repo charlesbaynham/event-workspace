@@ -351,7 +351,7 @@ Tell them what is left, listing only what their answers actually require:
   "set up the automations". The `setup` skill creates the nightly memory pass
   (the scheduled task that files what sessions learn), proves it with one run,
   and handles the WhatsApp wake too once WhatsApp is configured. Until it has
-  run, nothing reads the sessions' transcripts.
+  run, nothing files what sessions log.
 - **WhatsApp, now or later**: the prerequisites are in
   `agent-tools/skills/whatsapp/setup.md`. When they have them, open a session in
   the new repository and say "set up the WhatsApp routine"; the skill walks both
