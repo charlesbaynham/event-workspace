@@ -1,6 +1,6 @@
 ---
 name: bump-version
-description: Decide and apply an engine version bump in the memory-workspace template — semver from what changed under agent-tools/, plus the CHANGELOG entry consumers are shown.
+description: Decide and apply an engine version bump in the memory-workspace template — semver from what changed under agent-tools/, plus the CHANGELOG entry consumers are shown, and the GitHub release once it merges.
 ---
 
 Read `.claude/skills/bump-version/SKILL.md` completely and follow it.

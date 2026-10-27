@@ -120,8 +120,15 @@ Consumers on `agent_tools_track: pinned` compare the text of
 `agent-tools/VERSION` against upstream's copy at session start, so a bump on
 `main` is the release: nothing has to be tagged, and the changelog entry is
 what they are shown when deciding. Consumers on `latest` get every push, so
-`main` should always be installable. A `vX.Y.Z` tag is now only a readable
-marker, and Charles's to push if he wants one.
+`main` should always be installable.
+
+**Every version bump also gets a GitHub release**, once the bump has merged to
+`main`: tag `vX.Y.Z` on the merge commit, title `X.Y.Z`, notes = that
+version's changelog entry. Nothing in the update path reads it; it is how
+people browsing the repository see what shipped. Cloud sessions cannot create
+releases (the GitHub proxy refuses them), so when the bump PR merges, give
+Charles the command from the `bump-version` skill to run, and don't call the
+release done until it exists.
 
 ## Memory here
 

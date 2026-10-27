@@ -222,7 +222,7 @@ apply (there is no bot register if there is no bot) and keep the headings that a
 empty but will fill up — stock answers, things that always go to the owner. Do
 not invent facts: an empty section with a heading beats a plausible guess.
 
-**`CLAUDE.md`** — it ships with a parenthetical about the template's maintainer
+**`CLAUDE.md`** — it ships with a parenthetical and a release note about the template's maintainer
 guide, which is now irrelevant here. Trim it to a line or two saying the
 contract, the workspace's rules and the digest are imported so they are present from
 the first turn. Leave the three `@` imports exactly as they are, and note what

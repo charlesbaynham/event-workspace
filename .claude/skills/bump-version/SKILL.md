@@ -1,6 +1,6 @@
 ---
 name: bump-version
-description: Release a new engine version from the memory-workspace template — decide major/minor/patch from what changed under agent-tools/ since the last bump, write the CHANGELOG entry, and set VERSION in the same commit. Use when a change to agent-tools/ is ready to ship, when asked to bump/release/cut a version, or when a session is about to commit engine changes without touching VERSION.
+description: Release a new engine version from the memory-workspace template — decide major/minor/patch from what changed under agent-tools/ since the last bump, write the CHANGELOG entry, and set VERSION in the same commit, then publish the GitHub release once it merges. Use when a change to agent-tools/ is ready to ship, when asked to bump/release/cut a version, or when a session is about to commit engine changes without touching VERSION.
 ---
 
 # Bumping the engine version
@@ -90,6 +90,23 @@ Same commit as the change itself wherever possible; if the change is already
 committed, one follow-up commit carrying `VERSION` and `CHANGELOG.md` and
 nothing else. Then tell Charles the new version and the headline of the entry.
 
-Tagging is optional — nothing in the update path reads git tags any more.
-A `vX.Y.Z` tag is a readable marker for a release you care about, and it is his
-to push.
+## 5. Publish a GitHub release once it merges
+
+Every bump gets a GitHub release (AGENTS.md, "Versioning"). Nothing in the
+update path reads tags or releases; this is for people browsing the
+repository. Do it after the bump has merged to `main`, against the merge
+commit, with the changelog entry as the notes:
+
+```bash
+v=X.Y.Z
+git fetch origin main && git checkout origin/main
+awk -v v="$v" '$0 ~ "^## "v" " {f=1; next} /^## / && f {exit} f' \
+  agent-tools/CHANGELOG.md > /tmp/notes-$v.md
+gh release create "v$v" --target "$(git rev-parse HEAD)" \
+  --title "$v" --notes-file /tmp/notes-$v.md
+```
+
+A cloud session cannot run this: the GitHub proxy refuses to create releases,
+and the GitHub MCP tools have no create-release call. When the bump PR
+merges, check `list_releases` and, if `vX.Y.Z` is missing, give Charles the
+block above with the version filled in for him to run locally.
